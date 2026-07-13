@@ -450,3 +450,14 @@ body {
 .carousel-wrapper:active {
   cursor: grabbing;
 }
+
+/* ===== Elfsight Widget Responsive ===== */
+[class^="elfsight-app-"] {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+[class^="elfsight-app-"] iframe {
+  max-width: 100% !important;
+}
+

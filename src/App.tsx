@@ -10,6 +10,7 @@ import { ContactPage } from '@/features/dashboard/pages/ContactPage';
 import { ScrollToTop } from '@/components/common/ScrollToTop';
 import { ScrollToTopOnNavigate } from '@/components/common/ScrollToTopOnNavigate';
 import { ContactButtons } from '@/components/common/ContactButtons';
+import { Reviews } from '@/components/common/Reviews';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/contact" element={<ContactPage />} />
         </Routes>
+        <Reviews />
         <Footer />
         <ScrollToTop />
         <ContactButtons />
