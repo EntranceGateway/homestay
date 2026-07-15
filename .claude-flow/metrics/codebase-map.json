@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-07-15T06:34:49.998Z",
+  "projectRoot": "/home/rohan-shrestha/Desktop/bardiya-homestay",
+  "structure": {
+    "hasPackageJson": false,
+    "hasTsConfig": false,
+    "hasClaudeConfig": false,
+    "hasClaudeFlow": true
+  },
+  "scannedAt": 1784097289998
+}
