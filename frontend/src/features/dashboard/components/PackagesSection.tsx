@@ -1,8 +1,9 @@
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getApiBaseUrl } from '@/lib/apiBase';
 
-const API_BASE = 'https://api.bardiaecofriendlyhomestay.com/api';
+const API_BASE = getApiBaseUrl();
 
 const ICONS = ['hiking', 'binoculars', 'visibility'] as const;
 

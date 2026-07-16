@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "rm -rf dist && tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist/server && node scripts/prerender.mjs && node scripts/check-seo.mjs",
+    "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist/server && node scripts/prerender.mjs && node scripts/check-seo.mjs",
     "seo:check": "node scripts/check-seo.mjs",
     "lint": "eslint .",
     "preview": "vite preview"

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { useApi } from '@/hooks/useApi';
+import { getApiBaseUrl } from '@/lib/apiBase';
 
 /* ── Types ── */
 
@@ -27,7 +28,7 @@ interface GalleryImage {
   title?: string | null;
 }
 
-const API_BASE = 'https://api.bardiaecofriendlyhomestay.com/api';
+const API_BASE = getApiBaseUrl();
 const INITIAL_COUNT = 6;
 const HEIGHTS = ['380px', '480px', '320px', '420px', '540px', '360px', '460px', '300px'];
 

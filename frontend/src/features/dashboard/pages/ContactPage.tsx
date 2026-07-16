@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import { useApi } from '@/hooks/useApi';
+import { getApiBaseUrl } from '@/lib/apiBase';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { PageSeo } from '@/components/seo/PageSeo';
 import { breadcrumbJsonLd } from '@/lib/seo';
@@ -27,7 +28,7 @@ interface SocialLink {
   is_active: boolean;
 }
 
-const API_BASE = 'https://api.bardiaecofriendlyhomestay.com/api';
+const API_BASE = getApiBaseUrl();
 const breadcrumbs = [
   { label: 'Home', href: '/' },
   { label: 'Contact', href: '/contact' },

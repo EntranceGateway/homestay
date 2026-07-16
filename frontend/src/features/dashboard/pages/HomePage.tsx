@@ -5,6 +5,7 @@ import { AccommodationsSection } from '../components/AccommodationsSection';
 import { SafariSection } from '../components/SafariSection';
 import { PackagesSection } from '../components/PackagesSection';
 import { WildlifeSection } from '../components/WildlifeSection';
+import { BlogSection } from '../components/BlogSection';
 import { PageSeo } from '@/components/seo/PageSeo';
 import { lodgingBusinessJsonLd } from '@/lib/seo';
 import { usePageSeo } from '@/hooks/usePageSeo';
@@ -34,6 +35,8 @@ export function HomePage() {
       <SafariSection />
       <PackagesSection />
       <WildlifeSection />
+      <BlogSection />
     </>
   );
 }
+

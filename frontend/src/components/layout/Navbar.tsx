@@ -9,7 +9,7 @@ const LEFT_LINKS = [
 
 const RIGHT_LINKS = [
   { label: 'Packages', href: '/packages' },
-  { label: 'Bardiya National Park', href: '/blog' },
+  { label: 'Blog', href: '/blog' },
   { label: 'Contact', href: '/contact' },
 ];
 

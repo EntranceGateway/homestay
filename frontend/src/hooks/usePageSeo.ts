@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { useApi } from '@/hooks/useApi';
+import { getApiBaseUrl } from '@/lib/apiBase';
 
-const API_BASE = 'https://api.bardiaecofriendlyhomestay.com/api';
+const API_BASE = getApiBaseUrl();
 
 interface CmsPage {
   id: number;

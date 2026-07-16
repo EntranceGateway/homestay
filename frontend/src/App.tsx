@@ -4,6 +4,7 @@ import { Footer } from '@/components/layout/Footer';
 import { HomePage } from '@/features/dashboard/pages/HomePage';
 import { GalleryPage } from '@/features/dashboard/pages/GalleryPage';
 import { BlogPage } from '@/features/dashboard/pages/BlogPage';
+import { BlogPostPage } from '@/features/dashboard/pages/BlogPostPage';
 import { FarmToTablePage } from '@/features/dashboard/pages/FarmToTablePage';
 import { PackagesPage } from '@/features/dashboard/pages/PackagesPage';
 import { ContactPage } from '@/features/dashboard/pages/ContactPage';
@@ -28,6 +29,7 @@ export function AppContent() {
             <Route path="/farm-to-table" element={<FarmToTablePage />} />
             <Route path="/packages" element={<PackagesPage />} />
             <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogPostPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

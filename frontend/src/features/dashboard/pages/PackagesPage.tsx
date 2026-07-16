@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { PageSeo } from '@/components/seo/PageSeo';
 import { SITE_URL } from '@/components/seo/PageSeo';
+import { getApiBaseUrl } from '@/lib/apiBase';
 import { breadcrumbJsonLd } from '@/lib/seo';
 import { FaqSection, faqJsonLd } from '@/components/seo/FaqSection';
 import { usePageSeo } from '@/hooks/usePageSeo';
@@ -37,7 +38,7 @@ interface Package {
   features: string[];
 }
 
-const API_BASE = 'https://api.bardiaecofriendlyhomestay.com/api';
+const API_BASE = getApiBaseUrl();
 const breadcrumbs = [
   { label: 'Home', href: '/' },
   { label: 'Packages', href: '/packages' },

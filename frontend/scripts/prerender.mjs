@@ -1,6 +1,6 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -334,7 +334,7 @@ function sitemapXml() {
 }
 
 const template = await readFile(templatePath, 'utf8');
-const { render } = await import(serverEntryPath);
+const { render } = await import(pathToFileURL(serverEntryPath).href);
 
 for (const route of routes) {
   const appHtml = render(route.path);
