@@ -99,7 +99,7 @@ for (const route of routes) {
   if (!description) fail(`${relativePath} is missing meta description.`);
   else checkLength(`${relativePath} meta description`, description, 50, 180);
 
-  if (!html.includes(`<meta name="robots" content="index,follow" />`)) {
+  if (!/<meta name="robots" content="index,follow(?:,max-image-preview:large)?"\s*\/?>/.test(html)) {
     fail(`${relativePath} must be index,follow.`);
   }
 
@@ -124,11 +124,11 @@ for (const route of routes) {
     [/<meta property="og:title" content="[^"]+"\s*\/?>/, 'og:title'],
     [/<meta property="og:description" content="[^"]+"\s*\/?>/, 'og:description'],
     [new RegExp(`<meta property="og:url" content="${canonical.replaceAll('/', '\\/')}"\\s*\\/?>`), 'og:url'],
-    [/<meta property="og:image" content="https:\/\/www\.bardiaecofriendlyhomestay\.com\/[^"]+"\s*\/?>/, 'og:image'],
+    [/<meta property="og:image" content="https:\/\/[^"]+"\s*\/?>/, 'og:image'],
     [/<meta name="twitter:card" content="summary_large_image"\s*\/?>/, 'twitter:card'],
     [/<meta name="twitter:title" content="[^"]+"\s*\/?>/, 'twitter:title'],
     [/<meta name="twitter:description" content="[^"]+"\s*\/?>/, 'twitter:description'],
-    [/<meta name="twitter:image" content="https:\/\/www\.bardiaecofriendlyhomestay\.com\/[^"]+"\s*\/?>/, 'twitter:image'],
+    [/<meta name="twitter:image" content="https:\/\/[^"]+"\s*\/?>/, 'twitter:image'],
   ];
 
   for (const [pattern, label] of requiredPatterns) {

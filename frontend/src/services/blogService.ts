@@ -5,7 +5,11 @@ const API_BASE = getApiBaseUrl();
 
 export async function fetchBlogCategories(): Promise<BlogCategory[]> {
   const res = await fetch(`${API_BASE}/blog-categories/list`);
+  if (!res.ok) throw new Error(`Failed to load blog categories (${res.status}).`);
   const json = await res.json();
+  if (json.status && json.status !== 'success') {
+    throw new Error(json.message || 'Failed to load blog categories.');
+  }
   return json.data || [];
 }
 
@@ -30,12 +34,17 @@ export async function fetchBlogPosts({
   if (isFeatured !== undefined) params.set('is_featured', isFeatured ? '1' : '0');
 
   const res = await fetch(`${API_BASE}/blog-posts/list?${params}`);
+  if (!res.ok) throw new Error(`Failed to load blog posts (${res.status}).`);
   const json = await res.json();
+  if (json.status && json.status !== 'success') {
+    throw new Error(json.message || 'Failed to load blog posts.');
+  }
   return json.data || { posts: [], pagination: { page: 1, per_page: perPage, total: 0, pages: 0 } };
 }
 
 export async function fetchBlogPost(slug: string): Promise<BlogPostFull> {
   const res = await fetch(`${API_BASE}/blog-posts/get?slug=${encodeURIComponent(slug)}`);
+  if (!res.ok) throw new Error(`Blog post request failed (${res.status}).`);
   const json = await res.json();
   if (json.status !== 'success') {
     throw new Error(json.message || 'Blog post not found.');

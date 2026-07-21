@@ -16,6 +16,7 @@ export function breadcrumbJsonLd(items: Array<{ label: string; href: string }>) 
 export const lodgingBusinessJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'LodgingBusiness',
+  '@id': `${SITE_URL}/#lodging`,
   name: 'Bardia Eco-Friendly Homestay',
   url: SITE_URL,
   image: `${SITE_URL}/logo.png`,
@@ -31,5 +32,16 @@ export const lodgingBusinessJsonLd = {
     '@type': 'GeoCoordinates',
     latitude: 28.4411,
     longitude: 81.2858,
+  },
+};
+
+export const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': `${SITE_URL}/#website`,
+  name: 'Bardia Eco-Friendly Homestay',
+  url: SITE_URL,
+  publisher: {
+    '@id': `${SITE_URL}/#lodging`,
   },
 };

@@ -7,7 +7,7 @@ import { PackagesSection } from '../components/PackagesSection';
 import { WildlifeSection } from '../components/WildlifeSection';
 import { BlogSection } from '../components/BlogSection';
 import { PageSeo } from '@/components/seo/PageSeo';
-import { lodgingBusinessJsonLd } from '@/lib/seo';
+import { lodgingBusinessJsonLd, websiteJsonLd } from '@/lib/seo';
 import { usePageSeo } from '@/hooks/usePageSeo';
 
 export function HomePage() {
@@ -26,7 +26,7 @@ export function HomePage() {
         image={seo.image}
         canonicalUrl={seo.canonicalUrl}
         noindex={seo.noindex}
-        jsonLd={lodgingBusinessJsonLd}
+        jsonLd={[lodgingBusinessJsonLd, websiteJsonLd]}
       />
       <Header />
       <IntroSection />
@@ -39,4 +39,3 @@ export function HomePage() {
     </>
   );
 }
-

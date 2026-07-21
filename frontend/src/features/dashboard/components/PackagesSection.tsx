@@ -62,7 +62,7 @@ export function PackagesSection() {
   }, []);
 
   return (
-    <section id="packages" className="py-24 bg-background-light dark:bg-background-dark relative">
+    <section id="packages" className="py-24 bg-background-light dark:bg-background-dark relative overflow-hidden">
       {/* Subtle ambient glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 

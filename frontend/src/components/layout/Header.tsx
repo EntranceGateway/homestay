@@ -29,7 +29,7 @@ export function Header() {
           <source srcSet="/hero-tiger.webp" type="image/webp" />
           <img
             alt="Royal Bengal tiger habitat near Bardia National Park"
-            className="w-full h-full object-cover scale-110"
+            className="w-full h-full object-cover object-[30%_center] scale-110 md:object-center"
             fetchPriority="high"
             width={1920}
             height={1200}

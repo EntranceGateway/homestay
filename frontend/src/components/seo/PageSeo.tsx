@@ -67,17 +67,19 @@ export function PageSeo({
       const meta = document.createElement('meta');
       meta.name = 'robots';
       return meta;
-    }, noindex ? 'noindex,follow' : 'index,follow');
+    }, noindex ? 'noindex,follow' : 'index,follow,max-image-preview:large');
 
     upsertLink('canonical', resolvedCanonicalUrl);
 
     const metaTags: Array<[string, string, string]> = [
       ['property', 'og:site_name', SITE_NAME],
+      ['property', 'og:locale', 'en_US'],
       ['property', 'og:type', type],
       ['property', 'og:title', fullTitle],
       ['property', 'og:description', description],
       ['property', 'og:url', resolvedCanonicalUrl],
       ['property', 'og:image', fullImage],
+      ['property', 'og:image:alt', title],
       ['name', 'twitter:card', 'summary_large_image'],
       ['name', 'twitter:title', fullTitle],
       ['name', 'twitter:description', description],

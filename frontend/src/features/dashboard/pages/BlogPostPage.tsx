@@ -1,16 +1,63 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
-import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { PageSeo, SITE_URL } from '@/components/seo/PageSeo';
 import { breadcrumbJsonLd } from '@/lib/seo';
 import { fetchBlogPost } from '@/services/blogService';
 import type { BlogPostFull } from '@/types/blog';
 
+interface PrerenderData {
+  blogPostsBySlug?: Record<string, BlogPostFull>;
+}
+
+declare global {
+  interface Window {
+    __PRERENDER_DATA__?: PrerenderData;
+  }
+
+  // Used by the Node prerender build before React renders each route.
+  var __PRERENDER_DATA__: PrerenderData | undefined;
+}
+
+function getPrerenderedPost(slug: string | undefined) {
+  if (!slug) {
+    return null;
+  }
+
+  const data =
+    typeof window === 'undefined' ? globalThis.__PRERENDER_DATA__ : window.__PRERENDER_DATA__;
+
+  return data?.blogPostsBySlug?.[slug] || null;
+}
+
+function normalizeDate(value: string | null | undefined) {
+  if (!value || value.startsWith('0000-00-00')) {
+    return undefined;
+  }
+
+  const date = new Date(value.replace(' ', 'T'));
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  return date.toISOString();
+}
+
+function getSeoTitle(post: BlogPostFull) {
+  if (post.meta_title && post.meta_title.length <= 70) {
+    return post.meta_title;
+  }
+
+  return post.title;
+}
+
+const DEFAULT_BLOG_HERO_IMAGE = '/hero-tiger.webp';
+
 export function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
-  const [post, setPost] = useState<BlogPostFull | null>(null);
-  const [loading, setLoading] = useState(true);
+  const prerenderedPost = getPrerenderedPost(slug);
+  const [post, setPost] = useState<BlogPostFull | null>(prerenderedPost);
+  const [loading, setLoading] = useState(!prerenderedPost);
   const [error, setError] = useState<string | null>(null);
   const [scrollY, setScrollY] = useState(0);
 
@@ -25,6 +72,13 @@ export function BlogPostPage() {
 
   useEffect(() => {
     if (!slug) return;
+    const seededPost = getPrerenderedPost(slug);
+    if (seededPost) {
+      setPost(seededPost);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     fetchBlogPost(slug)
@@ -35,6 +89,8 @@ export function BlogPostPage() {
 
   const heroTransform = scrollY * 0.25;
   const heroOpacity = Math.max(0, 1 - scrollY / 600);
+  const publishedAt = normalizeDate(post?.published_at);
+  const modifiedAt = normalizeDate(post?.updated_at) || publishedAt;
 
   // Breadcrumbs
   const pageBreadcrumbs = [
@@ -64,30 +120,41 @@ export function BlogPostPage() {
   // Error / not found state
   if (error || !post) {
     return (
-      <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center">
-        <div className="text-center px-4">
-          <span className="text-7xl mb-6 block">🔍</span>
-          <h1 className="font-display text-3xl text-gray-800 dark:text-white mb-4">
-            Post Not Found
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">
-            {error || "The blog post you're looking for doesn't exist."}
-          </p>
-          <Link to="/blog" className="btn-brush btn-brush-gold">
-            Back to Blog
-          </Link>
+      <>
+        <PageSeo
+          title="Blog Post Not Found"
+          description="The requested Bardia Eco-Friendly Homestay blog post could not be found."
+          path={slug ? `/blog/${slug}` : '/blog'}
+          noindex
+        />
+        <div className="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center">
+          <div className="text-center px-4">
+            <span className="text-7xl mb-6 block">🔍</span>
+            <h1 className="font-display text-3xl text-gray-800 dark:text-white mb-4">
+              Post Not Found
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">
+              {error || "The blog post you're looking for doesn't exist."}
+            </p>
+            <Link to="/blog" className="btn-brush btn-brush-gold">
+              Back to Blog
+            </Link>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
+
+  const heroImage = post.featured_image_url || DEFAULT_BLOG_HERO_IMAGE;
+  const heroImageAlt = post.featured_image_alt || post.title;
 
   return (
     <>
       <PageSeo
-        title={post.meta_title || post.title}
+        title={getSeoTitle(post)}
         description={post.meta_description || post.excerpt}
         path={`/blog/${post.slug}`}
-        image={post.featured_image_url || undefined}
+        image={heroImage}
         canonicalUrl={post.canonical_url || undefined}
         noindex={post.robots?.startsWith('noindex')}
         type="article"
@@ -98,7 +165,7 @@ export function BlogPostPage() {
             '@type': 'BlogPosting',
             headline: post.title,
             description: post.meta_description || post.excerpt,
-            image: post.featured_image_url,
+            image: heroImage,
             author: {
               '@type': 'Person',
               name: post.author_name || 'Bardiya Eco Team',
@@ -111,8 +178,8 @@ export function BlogPostPage() {
                 url: `${SITE_URL}/logo.png`,
               },
             },
-            datePublished: post.published_at,
-            dateModified: post.updated_at,
+            ...(publishedAt ? { datePublished: publishedAt } : {}),
+            ...(modifiedAt ? { dateModified: modifiedAt } : {}),
             mainEntityOfPage: post.canonical_url || `${SITE_URL}/blog/${post.slug}`,
             articleSection: post.category_name,
           },
@@ -120,57 +187,65 @@ export function BlogPostPage() {
       />
 
       {/* ───── Hero / Featured Image ───── */}
-      <header className="relative min-h-[50vh] md:min-h-[60vh] flex items-end overflow-hidden bg-background-dark">
-        <div className="absolute inset-x-0 top-0 z-20">
-          <Breadcrumbs items={pageBreadcrumbs} />
+      <header className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background-dark">
+        <div
+          className="absolute inset-0 z-0 will-change-transform"
+          style={{ transform: `translate3d(0, ${heroTransform}px, 0)` }}
+        >
+          {post.featured_image_url ? (
+            <img
+              src={heroImage}
+              alt={heroImageAlt}
+              className="w-full h-full object-cover object-[30%_center] scale-110 md:object-center"
+            />
+          ) : (
+            <picture className="block w-full h-full">
+              <source srcSet={DEFAULT_BLOG_HERO_IMAGE} type="image/webp" />
+              <img
+                src="/tiger.jpg"
+                alt={heroImageAlt}
+                className="w-full h-full object-cover object-[30%_center] scale-110 md:object-center"
+                width={1920}
+                height={1200}
+              />
+            </picture>
+          )}
+          <div className="absolute inset-0 bg-black/45" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-background-dark/70" />
         </div>
 
-        {post.featured_image_url ? (
-          <div
-            className="absolute inset-0 z-0 will-change-transform"
-            style={{ transform: `translate3d(0, ${heroTransform}px, 0)` }}
-          >
-            <img
-              src={post.featured_image_url}
-              alt={post.featured_image_alt || post.title}
-              className="w-full h-full object-cover scale-110"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background-dark via-background-dark/40 to-transparent" />
-          </div>
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-b from-deep-forest to-bark-soil" />
-        )}
-
         <div
-          className="relative z-10 container mx-auto px-4 sm:px-6 max-w-4xl pb-12 md:pb-16 will-change-transform"
+          className="relative z-10 container mx-auto px-4 sm:px-6 max-w-4xl text-center mt-16 will-change-transform"
           style={{ opacity: heroOpacity }}
         >
-          <Link
-            to="/blog"
-            className="inline-flex items-center gap-2 text-white/70 hover:text-golden-hour text-sm font-accent uppercase tracking-wider transition-colors mb-6"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-            </svg>
-            Back to Blog
-          </Link>
+          <div className="mb-6 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+            <Link
+              to="/blog"
+              className="inline-flex items-center justify-center gap-2 text-white/80 hover:text-golden-hour text-sm font-accent uppercase tracking-wider transition-colors drop-shadow-lg"
+            >
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+              </svg>
+              <span>Back to Blog</span>
+            </Link>
 
-          <span className="inline-block bg-living-canopy/90 text-white text-[10px] font-accent uppercase tracking-wider px-3 py-1 rounded-full backdrop-blur-sm mb-4">
-            {post.category_name}
-          </span>
+            <span className="inline-flex max-w-full items-center justify-center rounded-full bg-living-canopy/90 px-3 py-1.5 text-center font-accent text-[10px] uppercase tracking-wider text-white backdrop-blur-sm">
+              {post.category_name}
+            </span>
+          </div>
 
-          <h1 className="text-white font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4 drop-shadow-2xl">
+          <h1 className="text-white font-display text-4xl md:text-6xl lg:text-7xl font-light leading-tight mb-8 drop-shadow-2xl">
             {post.title}
           </h1>
 
-          <div className="flex flex-wrap items-center gap-3 text-white/60 text-sm">
+          <div className="flex flex-wrap items-center justify-center gap-3 text-white/75 text-sm drop-shadow-lg">
             <span className="font-accent uppercase tracking-wider">
               By {post.author_name || 'Bardiya Eco Team'}
             </span>
             <span className="w-1 h-1 bg-white/40 rounded-full" />
-            <time dateTime={post.published_at || ''}>
-              {post.published_at
-                ? new Date(post.published_at).toLocaleDateString('en-US', {
+            <time dateTime={publishedAt || ''}>
+              {publishedAt
+                ? new Date(publishedAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',

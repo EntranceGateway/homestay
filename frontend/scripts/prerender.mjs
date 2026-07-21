@@ -10,6 +10,7 @@ const serverEntryPath = path.join(distDir, 'server', 'entry-server.js');
 
 const siteUrl = 'https://www.bardiaecofriendlyhomestay.com';
 const siteName = 'Bardia Eco-Friendly Homestay';
+const apiBase = (process.env.VITE_API_URL || 'https://api.bardiaecofriendlyhomestay.com/api').replace(/\/$/, '');
 const buildLastmod = process.env.BUILD_LASTMOD || new Date().toISOString().slice(0, 10);
 const googleSiteVerification = process.env.VITE_GOOGLE_SITE_VERIFICATION || '';
 const gaMeasurementId = process.env.VITE_GA_MEASUREMENT_ID || '';
@@ -79,6 +80,7 @@ function faqJsonLd(items) {
 const lodgingBusinessJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'LodgingBusiness',
+  '@id': `${siteUrl}/#lodging`,
   name: siteName,
   url: siteUrl,
   image: `${siteUrl}/logo.png`,
@@ -97,6 +99,17 @@ const lodgingBusinessJsonLd = {
   },
 };
 
+const websiteJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': `${siteUrl}/#website`,
+  name: siteName,
+  url: siteUrl,
+  publisher: {
+    '@id': `${siteUrl}/#lodging`,
+  },
+};
+
 const routes = [
   {
     path: '/',
@@ -106,7 +119,7 @@ const routes = [
     image: '/tiger.jpg',
     changefreq: 'weekly',
     priority: 1,
-    schemas: [lodgingBusinessJsonLd],
+    schemas: [lodgingBusinessJsonLd, websiteJsonLd],
   },
   {
     path: '/gallery',
@@ -230,6 +243,119 @@ const routes = [
   },
 ];
 
+function normalizeDate(value) {
+  if (!value || value.startsWith('0000-00-00')) {
+    return undefined;
+  }
+
+  const date = new Date(String(value).replace(' ', 'T'));
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  return date.toISOString().slice(0, 10);
+}
+
+function absoluteImageUrl(value, fallback = '/logo.png') {
+  const image = value || fallback;
+  return image.startsWith('http') ? image : `${siteUrl}${image}`;
+}
+
+function articleJsonLd(post) {
+  const canonicalPath = `/blog/${post.slug}`;
+  const canonicalUrl = post.canonical_url || `${siteUrl}${canonicalPath}`;
+  const publishedAt = normalizeDate(post.published_at || post.created_at);
+  const modifiedAt = normalizeDate(post.updated_at || post.published_at || post.created_at);
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.meta_description || post.excerpt,
+    image: absoluteImageUrl(post.featured_image_url || post.meta_image, '/blogs/herosection.webp'),
+    author: {
+      '@type': 'Person',
+      name: post.author_name || 'Bardiya Eco Team',
+    },
+    publisher: {
+      '@id': `${siteUrl}/#lodging`,
+    },
+    ...(publishedAt ? { datePublished: publishedAt } : {}),
+    ...(modifiedAt ? { dateModified: modifiedAt } : {}),
+    mainEntityOfPage: canonicalUrl,
+    articleSection: post.category_name,
+  };
+}
+
+function seoTitleForPost(post) {
+  if (post.meta_title && post.meta_title.length <= 70) {
+    return post.meta_title;
+  }
+
+  return post.title;
+}
+
+async function fetchPublishedBlogPosts() {
+  try {
+    const listResponse = await fetch(`${apiBase}/blog-posts/list?per_page=100`);
+    if (!listResponse.ok) {
+      throw new Error(`Blog list returned ${listResponse.status}`);
+    }
+
+    const listJson = await listResponse.json();
+    const posts = listJson?.data?.posts || [];
+    const publishedPosts = posts.filter((post) => post.slug && post.status === 'published' && post.is_active !== false);
+
+    return Promise.all(
+      publishedPosts.map(async (post) => {
+        try {
+          const detailResponse = await fetch(`${apiBase}/blog-posts/get?slug=${encodeURIComponent(post.slug)}`);
+          if (!detailResponse.ok) {
+            throw new Error(`Blog detail returned ${detailResponse.status}`);
+          }
+
+          const detailJson = await detailResponse.json();
+          return detailJson?.data || post;
+        } catch {
+          return post;
+        }
+      })
+    );
+  } catch (error) {
+    console.warn(`Skipping blog post prerendering: ${error instanceof Error ? error.message : String(error)}`);
+    return [];
+  }
+}
+
+const blogPosts = await fetchPublishedBlogPosts();
+for (const post of blogPosts) {
+  routes.push({
+    path: `/blog/${post.slug}`,
+    title: seoTitleForPost(post),
+    description: post.meta_description || post.excerpt,
+    image: post.meta_image || post.featured_image_url || '/blogs/herosection.webp',
+    canonicalUrl: post.canonical_url || undefined,
+    type: 'article',
+    changefreq: 'monthly',
+    priority: 0.6,
+    lastmod: normalizeDate(post.updated_at || post.published_at || post.created_at),
+    noindex: post.robots?.startsWith('noindex'),
+    prerenderData: {
+      blogPostsBySlug: {
+        [post.slug]: post,
+      },
+    },
+    schemas: [
+      breadcrumbJsonLd([
+        { name: 'Home', path: '/' },
+        { name: 'Blog', path: '/blog' },
+        { name: post.title, path: `/blog/${post.slug}` },
+      ]),
+      articleJsonLd(post),
+    ],
+  });
+}
+
 function escapeHtml(value) {
   return value
     .replaceAll('&', '&amp;')
@@ -239,7 +365,7 @@ function escapeHtml(value) {
 }
 
 function routeHead(route) {
-  const canonical = `${siteUrl}${route.path}`;
+  const canonical = route.canonicalUrl || `${siteUrl}${route.path}`;
   const image = route.image.startsWith('http') ? route.image : `${siteUrl}${route.image}`;
   const type = route.type || 'website';
   const schemas = route.schemas || [];
@@ -247,8 +373,10 @@ function routeHead(route) {
   return [
     `<title>${escapeHtml(route.title)}</title>`,
     `<meta name="description" content="${escapeHtml(route.description)}" />`,
-    `<meta name="robots" content="${route.noindex ? 'noindex,follow' : 'index,follow'}" />`,
+    `<meta name="robots" content="${route.noindex ? 'noindex,follow' : 'index,follow,max-image-preview:large'}" />`,
     `<link rel="canonical" href="${canonical}" />`,
+    `<meta property="og:site_name" content="${siteName}" />`,
+    '<meta property="og:locale" content="en_US" />',
     `<meta property="og:type" content="${type}" />`,
     `<meta property="og:title" content="${escapeHtml(route.title)}" />`,
     `<meta property="og:description" content="${escapeHtml(route.description)}" />`,
@@ -316,7 +444,7 @@ function sitemapXml() {
       return [
         '  <url>',
         `    <loc>${escapeXml(loc)}</loc>`,
-        `    <lastmod>${buildLastmod}</lastmod>`,
+        `    <lastmod>${route.lastmod || buildLastmod}</lastmod>`,
         `    <changefreq>${route.changefreq || 'monthly'}</changefreq>`,
         `    <priority>${Number(route.priority ?? 0.5).toFixed(1)}</priority>`,
         '  </url>',
@@ -336,14 +464,29 @@ function sitemapXml() {
 const template = await readFile(templatePath, 'utf8');
 const { render } = await import(pathToFileURL(serverEntryPath).href);
 
+function prerenderDataScript(route) {
+  if (!route.prerenderData) {
+    return '';
+  }
+
+  const json = JSON.stringify(route.prerenderData).replaceAll('</', '<\\/');
+  return `<script>window.__PRERENDER_DATA__=${json};</script>`;
+}
+
 for (const route of routes) {
+  globalThis.__PRERENDER_DATA__ = route.prerenderData || {};
   const appHtml = render(route.path);
-  const html = replaceHead(template, route).replace('<div id="root"></div>', `<div id="root">${appHtml}</div>`);
+  const html = replaceHead(template, route).replace(
+    '<div id="root"></div>',
+    `<div id="root">${appHtml}</div>${prerenderDataScript(route)}`
+  );
   const filePath = outputPath(route.path);
 
   await mkdir(path.dirname(filePath), { recursive: true });
   await writeFile(filePath, html);
 }
+
+delete globalThis.__PRERENDER_DATA__;
 
 await writeFile(
   path.join(distDir, 'prerendered-routes.json'),

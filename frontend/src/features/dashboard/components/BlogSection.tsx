@@ -29,7 +29,7 @@ export function BlogSection() {
   if (posts.length === 0) return null;
 
   return (
-    <section className="py-24 bg-moonlight dark:bg-background-dark relative">
+    <section className="py-24 bg-moonlight dark:bg-background-dark relative overflow-hidden">
       {/* Subtle ambient glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-golden-hour/5 rounded-full blur-3xl pointer-events-none" />
 
