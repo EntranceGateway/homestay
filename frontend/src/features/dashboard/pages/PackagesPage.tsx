@@ -85,8 +85,17 @@ export function PackagesPage() {
   }, [apiCategories, activeSlug]);
 
   const currentSlug = activeSlug || apiCategories[0]?.slug || '';
+  const selectedCategory = apiCategories.find((c) => c.slug === currentSlug) || apiCategories[0];
+
+  // Match packages flexibly by category_slug, category_id, or category_name
   const filtered = currentSlug
-    ? apiPackages.filter((p) => p.category_slug === currentSlug)
+    ? apiPackages.filter(
+        (p) =>
+          p.category_slug === currentSlug ||
+          (selectedCategory &&
+            (p.category_id === selectedCategory.id ||
+              p.category_name?.toLowerCase() === selectedCategory.name?.toLowerCase()))
+      )
     : apiPackages;
 
   const seo = usePageSeo('packages', {
@@ -150,23 +159,32 @@ export function PackagesPage() {
       </section>
 
       {/* ════════ TABS ════════ */}
-      {apiCategories.length > 0 && (
+      {!loading && apiCategories.length > 0 && (
         <div className="flex justify-center gap-6 sm:gap-8 mb-12 px-4 overflow-x-auto snap-x snap-mandatory scroll-hide">
-          {apiCategories.map((cat) => (
-            <button
-              aria-label={`Show ${cat.name} packages`}
-              key={cat.id}
-              onClick={() => setActiveSlug(cat.slug)}
-              type="button"
-              className={`font-accent text-xs sm:text-sm tracking-[0.18em] uppercase pb-2.5 border-b-2 whitespace-nowrap snap-center transition-all duration-300 ${
-                currentSlug === cat.slug
-                  ? 'text-bark-soil dark:text-soft-earth border-golden-hour font-bold'
-                  : 'text-gray-700 dark:text-gray-300 border-transparent hover:text-golden-hour font-semibold'
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
+          {apiCategories.map((cat) => {
+            const count = apiPackages.filter(
+              (p) =>
+                p.category_slug === cat.slug ||
+                p.category_id === cat.id ||
+                p.category_name?.toLowerCase() === cat.name?.toLowerCase()
+            ).length;
+
+            return (
+              <button
+                aria-label={`Show ${cat.name} packages`}
+                key={cat.id}
+                onClick={() => setActiveSlug(cat.slug)}
+                type="button"
+                className={`font-accent text-xs sm:text-sm tracking-[0.18em] uppercase pb-2.5 border-b-2 whitespace-nowrap snap-center transition-all duration-300 ${
+                  currentSlug === cat.slug
+                    ? 'text-bark-soil dark:text-soft-earth border-golden-hour font-bold'
+                    : 'text-gray-700 dark:text-gray-300 border-transparent hover:text-golden-hour font-semibold'
+                }`}
+              >
+                {cat.name} {count > 0 && `(${count})`}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -177,7 +195,7 @@ export function PackagesPage() {
           className={`scroll-fade-in ${grid.isVisible ? 'visible' : ''}`}
         >
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-32">
+            <div className="flex flex-col items-center justify-center py-28">
               <div className="w-12 h-12 border-4 border-golden-hour/20 border-t-golden-hour rounded-full animate-spin mb-4" />
               <p className="text-bark-soil dark:text-soft-earth font-accent text-xs tracking-widest uppercase font-bold">
                 Loading packages...
@@ -187,10 +205,10 @@ export function PackagesPage() {
             <div className="text-center py-16 px-6 bg-white/90 dark:bg-bark-soil/80 rounded-2xl border border-gray-300/70 dark:border-gray-700 shadow-md max-w-lg mx-auto my-8">
               <span className="text-4xl block mb-3">🌿</span>
               <h3 className="font-display text-xl font-bold text-bark-soil dark:text-soft-earth mb-2">
-                No Packages Available In This Category
+                No Packages Found in {selectedCategory?.name || 'this category'}
               </h3>
               <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed mb-6 font-medium">
-                We are currently updating custom packages for this category. Contact us directly to tailor your Bardia safari experience!
+                We are currently updating custom packages for this experience. Contact us directly to tailor your Bardia safari!
               </p>
               <Link to="/contact" className="btn-brush btn-brush-gold text-sm">
                 Inquire For Custom Package

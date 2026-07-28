@@ -34,7 +34,7 @@ export function ActivityModal({ activity, isOpen, onClose }: ActivityModalProps)
   const whatsappMessage = encodeURIComponent(
     `Hello! I am interested in booking or inquiring about the "${activity.title}" experience.`
   );
-  const whatsappUrl = `https://wa.me/9779848048600?text=${whatsappMessage}`;
+  const whatsappUrl = `https://api.whatsapp.com/send/?phone=9779842364787&text=${whatsappMessage}&type=phone_number&app_absent=0`;
 
   return (
     <div

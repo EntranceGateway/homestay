@@ -122,7 +122,7 @@ export function ContactPage() {
     const title = method.title.toLowerCase();
     if (title.includes('call') || title.includes('phone')) return `tel:${method.detail}`;
     if (title.includes('email') || title.includes('mail')) return `mailto:${method.detail}`;
-    if (title.includes('whatsapp') || title.includes('message')) return `https://wa.me/${method.detail.replace(/\D/g, '')}`;
+    if (title.includes('whatsapp') || title.includes('message')) return `https://api.whatsapp.com/send/?phone=9779842364787&type=phone_number&app_absent=0`;
     return '#';
   };
 
