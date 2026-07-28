@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import type { ActivityItem } from '@/types/activity';
-import { fetchActivitiesList } from '@/services/activityService';
+import { fetchActivitiesList, fetchActivityDetail } from '@/services/activityService';
 import { ActivityModal } from './ActivityModal';
 
 export function ActivitiesSection() {
@@ -26,15 +26,33 @@ export function ActivitiesSection() {
     };
   }, []);
 
-  const handleOpenModal = (activity: ActivityItem) => {
+  const handleOpenModal = async (activity: ActivityItem) => {
+    // Show current card data immediately for zero lag
     setSelectedActivity(activity);
     setIsModalOpen(true);
+
+    // Also fetch fresh detail data from API /api/activities/get?slug={slug}
+    if (activity.slug) {
+      try {
+        const freshDetail = await fetchActivityDetail(activity.slug);
+        if (freshDetail) {
+          setSelectedActivity(freshDetail);
+        }
+      } catch (err) {
+        console.warn('Using card data for modal detail:', err);
+      }
+    }
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedActivity(null);
   };
+
+  // If loading has completed and no active items exist in API, hide section entirely
+  if (!loading && activities.length === 0) {
+    return null;
+  }
 
   return (
     <section
@@ -67,7 +85,7 @@ export function ActivitiesSection() {
           </h2>
 
           <h3 className="font-script text-accent-gold text-4xl md:text-5xl my-1">
-            12 Ways to Discover Bardia
+            Wildlife Experiences
           </h3>
 
           <div className="divider-organic" />
@@ -77,7 +95,7 @@ export function ActivitiesSection() {
           </p>
         </div>
 
-        {/* 12-Card Grid Container */}
+        {/* Card Grid Container */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {Array.from({ length: 8 }).map((_, i) => (
