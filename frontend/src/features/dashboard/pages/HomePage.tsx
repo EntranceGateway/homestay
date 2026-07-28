@@ -3,6 +3,7 @@ import { IntroSection } from '../components/IntroSection';
 import { TestimonialSection } from '../components/TestimonialSection';
 import { AccommodationsSection } from '../components/AccommodationsSection';
 import { SafariSection } from '../components/SafariSection';
+import { ActivitiesSection } from '../components/ActivitiesSection';
 import { PackagesSection } from '../components/PackagesSection';
 import { WildlifeSection } from '../components/WildlifeSection';
 import { BlogSection } from '../components/BlogSection';
@@ -33,6 +34,7 @@ export function HomePage() {
       <TestimonialSection />
       <AccommodationsSection />
       <SafariSection />
+      <ActivitiesSection />
       <PackagesSection />
       <WildlifeSection />
       <BlogSection />
