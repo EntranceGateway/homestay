@@ -122,6 +122,21 @@ const routes = [
     schemas: [lodgingBusinessJsonLd, websiteJsonLd],
   },
   {
+    path: '/activities',
+    title: `Activities and Wildlife Experiences | ${siteName}`,
+    description:
+      'Explore Bardia wildlife activities, jungle safaris, river expeditions, birdwatching, and local nature experiences guided by veteran naturalists.',
+    image: '/safari.webp',
+    changefreq: 'weekly',
+    priority: 0.8,
+    schemas: [
+      breadcrumbJsonLd([
+        { name: 'Home', path: '/' },
+        { name: 'Activities', path: '/activities' },
+      ]),
+    ],
+  },
+  {
     path: '/gallery',
     title: `Gallery | ${siteName}`,
     description:

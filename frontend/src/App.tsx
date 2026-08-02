@@ -3,6 +3,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { HomePage } from '@/features/dashboard/pages/HomePage';
 import { GalleryPage } from '@/features/dashboard/pages/GalleryPage';
+import { ActivitiesPage } from '@/features/dashboard/pages/ActivitiesPage';
 import { BlogPage } from '@/features/dashboard/pages/BlogPage';
 import { BlogPostPage } from '@/features/dashboard/pages/BlogPostPage';
 import { FarmToTablePage } from '@/features/dashboard/pages/FarmToTablePage';
@@ -25,6 +26,7 @@ export function AppContent() {
         <main>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/activities" element={<ActivitiesPage />} />
             <Route path="/gallery" element={<GalleryPage />} />
             <Route path="/farm-to-table" element={<FarmToTablePage />} />
             <Route path="/packages" element={<PackagesPage />} />

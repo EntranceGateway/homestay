@@ -1,4 +1,6 @@
 /index.html    /    301
+/activities    /activities/index.html   200
+/activities/    /activities/index.html   200
 /gallery    /gallery/index.html   200
 /gallery/    /gallery/index.html   200
 /farm-to-table    /farm-to-table/index.html   200

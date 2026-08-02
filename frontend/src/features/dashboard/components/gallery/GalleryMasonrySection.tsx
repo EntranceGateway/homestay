@@ -37,6 +37,16 @@ interface GalleryImage {
 const API_BASE = getApiBaseUrl();
 const INITIAL_COUNT = 8;
 const HEIGHTS = ['380px', '480px', '320px', '420px', '540px', '360px', '460px', '300px'];
+const IMAGE_FILENAME_PATTERN = /^(image\s+)?[^/\\]+\.(jpe?g|png|webp|gif|avif)$/i;
+
+function getDisplayCaption(value: string | null | undefined) {
+  const caption = value?.trim();
+  if (!caption || IMAGE_FILENAME_PATTERN.test(caption)) {
+    return '';
+  }
+
+  return caption;
+}
 
 export function GalleryMasonrySection() {
   const section = useScrollAnimation();
@@ -159,7 +169,7 @@ export function GalleryMasonrySection() {
               {visibleImages.map((img, index) => {
                 const src = img.imageUrl || img.image_url || '/gallery/homestay.jpg';
                 const alt = img.altText || img.alt_text || img.title || `${selectedCat?.name || 'Gallery'} image ${index + 1}`;
-                const caption = img.caption || img.title || alt;
+                const caption = getDisplayCaption(img.caption);
 
                 return (
                   <figure key={img.id || index} className="masonry-item group">
@@ -173,7 +183,7 @@ export function GalleryMasonrySection() {
                         className="w-full h-full object-cover transition-transform duration-[600ms] ease-out group-hover:scale-105"
                         height={img.height ?? undefined}
                         loading="lazy"
-                        title={img.title || alt}
+                        title={caption || undefined}
                         width={img.width ?? undefined}
                       />
                     </div>

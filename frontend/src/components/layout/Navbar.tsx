@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const LEFT_LINKS = [
   { label: 'Home', href: '/' },
-  { label: 'Activities', href: '/#activities' },
+  { label: 'Activities', href: '/activities' },
   { label: 'Gallery', href: '/gallery' },
   { label: 'Farm to Table', href: '/farm-to-table' },
 ];
@@ -19,7 +19,6 @@ const ALL_LINKS = [...LEFT_LINKS, ...RIGHT_LINKS];
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -27,16 +26,8 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleNavClick = (href: string) => {
+  const handleNavClick = () => {
     setIsOpen(false);
-    if (href === '/#activities') {
-      if (location.pathname === '/') {
-        const el = document.getElementById('activities');
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' });
-        }
-      }
-    }
   };
 
   const linkClass =
@@ -61,7 +52,7 @@ export function Navbar() {
                   key={link.href}
                   to={link.href}
                   className={linkClass}
-                  onClick={() => handleNavClick(link.href)}
+                  onClick={handleNavClick}
                 >
                   {link.label}
                 </Link>
@@ -89,7 +80,7 @@ export function Navbar() {
                   key={link.href}
                   to={link.href}
                   className={linkClass}
-                  onClick={() => handleNavClick(link.href)}
+                  onClick={handleNavClick}
                 >
                   {link.label}
                 </Link>
@@ -144,7 +135,7 @@ export function Navbar() {
                 key={link.href}
                 to={link.href}
                 className="block border-b border-white/10 px-3 py-3.5 font-accent text-[12px] tracking-[0.14em] uppercase text-white/90 last:border-b-0 hover:text-accent-gold transition-colors"
-                onClick={() => handleNavClick(link.href)}
+                onClick={handleNavClick}
               >
                 {link.label}
               </Link>
