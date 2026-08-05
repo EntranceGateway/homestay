@@ -6,6 +6,7 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { PageSeo } from '@/components/seo/PageSeo';
 import { breadcrumbJsonLd } from '@/lib/seo';
 import { usePageSeo } from '@/hooks/usePageSeo';
+import { PackageIcon } from '@/components/common/PackageIcon';
 
 /* ── Types ── */
 
@@ -176,8 +177,8 @@ export function ContactPage() {
                 key={m.id}
                 className={`bg-white dark:bg-surface-dark p-10 rounded-2xl text-center shadow-card card-lift relative overflow-hidden scroll-fade-in stagger-${i + 1} ${methods.isVisible ? 'visible' : ''}`}
               >
-                <div className="w-[72px] h-[72px] mx-auto mb-6 rounded-full bg-gradient-to-br from-golden-hour to-burnt-rust flex items-center justify-center text-3xl animate-float">
-                  {m.icon}
+                <div className="w-[72px] h-[72px] mx-auto mb-6 rounded-full bg-gradient-to-br from-golden-hour to-burnt-rust flex items-center justify-center text-3xl animate-float text-white">
+                  <PackageIcon icon={m.icon} className="w-8 h-8 flex items-center justify-center" />
                 </div>
                 <h3 className="font-display text-2xl text-bark-soil dark:text-soft-earth mb-3">{m.title}</h3>
                 <a

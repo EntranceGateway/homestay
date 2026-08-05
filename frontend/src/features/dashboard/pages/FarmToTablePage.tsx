@@ -3,6 +3,7 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs';
 import { PageSeo } from '@/components/seo/PageSeo';
 import { breadcrumbJsonLd } from '@/lib/seo';
 import { usePageSeo } from '@/hooks/usePageSeo';
+import { PackageIcon } from '@/components/common/PackageIcon';
 
 /* ── Data ── */
 
@@ -161,7 +162,9 @@ export function FarmToTablePage() {
               key={i}
               className={`text-center p-10 sm:p-12 bg-white dark:bg-surface-dark rounded-2xl shadow-card card-lift scroll-fade-in stagger-${(i % 5) + 1} ${principles.isVisible ? 'visible' : ''}`}
             >
-              <span className="text-5xl mb-6 block">{p.icon}</span>
+              <div className="text-5xl mb-6 block flex items-center justify-center">
+                <PackageIcon icon={p.icon} className="w-12 h-12 text-5xl" />
+              </div>
               <h3 className="font-display text-2xl text-bark-soil dark:text-soft-earth mb-4">{p.title}</h3>
               <p className="text-sm font-light leading-relaxed text-gray-500 dark:text-gray-400">{p.desc}</p>
             </div>
@@ -248,7 +251,7 @@ export function FarmToTablePage() {
               {WELLNESS_FEATURES.map((f, i) => (
                 <div key={i} className="flex gap-4">
                   <div className="w-12 h-12 flex-shrink-0 rounded-full bg-golden-hour/10 flex items-center justify-center text-xl">
-                    {f.icon}
+                    <PackageIcon icon={f.icon} className="w-6 h-6 flex items-center justify-center" />
                   </div>
                   <div>
                     <h4 className="font-display text-lg text-bark-soil dark:text-soft-earth mb-1">{f.title}</h4>

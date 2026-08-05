@@ -9,6 +9,9 @@ import { getApiBaseUrl } from '@/lib/apiBase';
 import { breadcrumbJsonLd } from '@/lib/seo';
 import { FaqSection, faqJsonLd } from '@/components/seo/FaqSection';
 import { usePageSeo } from '@/hooks/usePageSeo';
+import { PackageCard } from '@/features/dashboard/components/PackageCard';
+import { PackageModal } from '@/features/dashboard/components/PackageModal';
+import type { Package } from '@/features/dashboard/components/packageUtils';
 
 /* ── Types matching API responses ── */
 
@@ -18,24 +21,6 @@ interface Category {
   slug: string;
   display_order: number;
   is_active: boolean;
-}
-
-interface Package {
-  id: number;
-  category_id: number;
-  icon: string;
-  name: string;
-  duration: string;
-  price: number;
-  currency: string;
-  price_note: string;
-  description: string;
-  is_featured: boolean;
-  display_order: number;
-  is_active: boolean;
-  category_name: string;
-  category_slug: string;
-  features: string[];
 }
 
 const API_BASE = getApiBaseUrl();
@@ -73,6 +58,13 @@ export function PackagesPage() {
   });
 
   const [activeSlug, setActiveSlug] = useState<string>('');
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  const handleOpenItinerary = (pkg: Package) => {
+    setSelectedPackage(pkg);
+    setIsModalOpen(true);
+  };
 
   const apiCategories = Array.isArray(categories) ? categories : [];
   const apiPackages = Array.isArray(packages) ? packages : [];
@@ -221,64 +213,23 @@ export function PackagesPage() {
                 filtered.length === 2 ? 'lg:grid-cols-2 max-w-4xl mx-auto' : 'lg:grid-cols-3'
               } gap-8`}
             >
-              {filtered.map((pkg, i) => (
-                <div
+              {filtered.map((pkg) => (
+                <PackageCard
                   key={pkg.id}
-                  className={`bg-white dark:bg-bark-soil/90 rounded-2xl overflow-hidden shadow-md border border-gray-200/80 dark:border-gray-700/60 card-lift relative scroll-fade-in stagger-${
-                    i + 1
-                  } ${grid.isVisible ? 'visible' : ''} ${
-                    pkg.is_featured ? 'border-2 border-golden-hour ring-2 ring-golden-hour/20 lg:scale-105' : ''
-                  }`}
-                >
-                  {pkg.is_featured && (
-                    <span className="absolute top-6 right-6 bg-golden-hour text-white px-4 py-1.5 rounded-full font-accent text-[9px] tracking-[0.18em] uppercase font-bold z-10 shadow-md">
-                      Most Popular
-                    </span>
-                  )}
-
-                  {/* Header */}
-                  <div className="p-8 sm:p-10 relative overflow-hidden">
-                    <span className="text-5xl mb-4 block relative z-10">{pkg.icon || '🥾'}</span>
-                    <h3 className="font-display text-2xl sm:text-3xl font-bold text-bark-soil dark:text-soft-earth mb-2 relative z-10">
-                      {pkg.name}
-                    </h3>
-                    <p className="font-accent text-xs tracking-widest uppercase text-golden-hour font-bold relative z-10">
-                      {pkg.duration}
-                    </p>
-                  </div>
-
-                  {/* Body */}
-                  <div className="px-8 sm:px-10 pb-8 sm:pb-10">
-                    {pkg.description && (
-                      <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base leading-relaxed mb-6 font-medium">
-                        {pkg.description}
-                      </p>
-                    )}
-
-                    {Array.isArray(pkg.features) && pkg.features.length > 0 && (
-                      <ul className="space-y-2 mb-8">
-                        {pkg.features.map((feat, j) => (
-                          <li
-                            key={j}
-                            className="flex items-start gap-3 py-2 border-b border-gray-100 dark:border-gray-800 text-sm text-gray-800 dark:text-gray-200 font-medium"
-                          >
-                            <span className="text-golden-hour font-bold flex-shrink-0">✓</span>
-                            {feat}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                    <Link to="/contact" className="btn-brush btn-brush-gold w-full text-center block text-sm">
-                      Inquire This Package
-                    </Link>
-                  </div>
-                </div>
+                  pkg={pkg}
+                  onOpenItinerary={handleOpenItinerary}
+                />
               ))}
             </div>
           )}
         </div>
       </section>
+
+      <PackageModal
+        pkg={selectedPackage}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
 
       <FaqSection items={FAQ_ITEMS} />
 

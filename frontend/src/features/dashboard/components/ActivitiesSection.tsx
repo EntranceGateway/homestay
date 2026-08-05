@@ -3,6 +3,7 @@ import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 import type { ActivityItem } from '@/types/activity';
 import { fetchActivitiesList, fetchActivityDetail } from '@/services/activityService';
 import { ActivityModal } from './ActivityModal';
+import { PackageIcon } from '@/components/common/PackageIcon';
 
 export function ActivitiesSection() {
   const heading = useScrollAnimation();
@@ -132,7 +133,7 @@ export function ActivitiesSection() {
                     {/* Top row: Icon badge & order number */}
                     <div className="flex items-center justify-between mb-5">
                       <div className="w-14 h-14 rounded-2xl bg-accent-gold/10 dark:bg-accent-gold/20 group-hover:bg-accent-gold group-hover:text-white text-2xl sm:text-3xl flex items-center justify-center transition-all duration-300 shadow-sm border border-accent-gold/20">
-                        {activity.icon || '🌿'}
+                        <PackageIcon icon={activity.icon || '🌿'} className="w-8 h-8 flex items-center justify-center" />
                       </div>
                       <span className="text-[10px] font-accent uppercase tracking-widest text-gray-400 dark:text-gray-500 group-hover:text-accent-gold transition-colors font-bold">
                         #{(index + 1).toString().padStart(2, '0')}

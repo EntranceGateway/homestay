@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import type { ActivityItem } from '@/types/activity';
 import { Link } from 'react-router-dom';
+import { PackageIcon } from '@/components/common/PackageIcon';
 
 interface ActivityModalProps {
   activity: ActivityItem | null;
@@ -71,7 +72,7 @@ export function ActivityModal({ activity, isOpen, onClose }: ActivityModalProps)
           {/* Activity Header */}
           <div className="flex items-start gap-3.5 sm:gap-4 pr-10">
             <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-2xl bg-accent-gold/15 dark:bg-accent-gold/25 border border-accent-gold/30 flex items-center justify-center text-2xl sm:text-4xl shadow-inner shrink-0">
-              {activity.icon || '🐘'}
+              <PackageIcon icon={activity.icon || '🐘'} className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center" />
             </div>
             <div>
               <span className="inline-block text-[10px] sm:text-[11px] font-accent uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-living-canopy/10 dark:bg-living-canopy/30 text-living-canopy dark:text-gray-200 font-semibold mb-1">
