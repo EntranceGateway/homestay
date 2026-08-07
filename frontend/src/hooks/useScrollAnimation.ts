@@ -18,6 +18,12 @@ export function useScrollAnimation(options: ScrollAnimationOptions = {}) {
     useEffect(() => {
         if (!element) return;
 
+        // intersectionRatio is visible area / total area, so an element taller than the
+        // viewport can never reach a high threshold and would never reveal. Clamp to half
+        // of what this element can actually hit. Short elements keep the requested value.
+        const reachable = window.innerHeight / Math.max(element.offsetHeight, 1);
+        const safeThreshold = Math.min(threshold, reachable / 2);
+
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
@@ -29,7 +35,7 @@ export function useScrollAnimation(options: ScrollAnimationOptions = {}) {
                     setIsVisible(false);
                 }
             },
-            { threshold, rootMargin }
+            { threshold: safeThreshold, rootMargin }
         );
 
         observer.observe(element);
