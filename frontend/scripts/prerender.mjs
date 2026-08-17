@@ -276,6 +276,58 @@ function absoluteImageUrl(value, fallback = '/logo.png') {
   return image.startsWith('http') ? image : `${siteUrl}${image}`;
 }
 
+function sanitizeMetaText(value) {
+  if (!value) return '';
+  return String(value)
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function seoTitleForPost(post) {
+  const metaTitle = sanitizeMetaText(post.meta_title);
+  if (metaTitle && metaTitle.length >= 10 && metaTitle.length <= 70) {
+    return metaTitle;
+  }
+
+  const rawTitle = sanitizeMetaText(post.title) || 'Bardia Wildlife & Homestay Blog';
+  if (rawTitle.length <= 70) {
+    return rawTitle;
+  }
+  return `${rawTitle.slice(0, 67)}...`;
+}
+
+function seoDescriptionForPost(post) {
+  const metaDesc = sanitizeMetaText(post.meta_description);
+  if (metaDesc && metaDesc.length >= 50 && metaDesc.length <= 180) {
+    return metaDesc;
+  }
+
+  const source = metaDesc || sanitizeMetaText(post.excerpt) || sanitizeMetaText(post.content) || '';
+  if (!source) {
+    return 'Read stories, travel guides, and wildlife experiences from Bardia Eco-Friendly Homestay near Bardia National Park.';
+  }
+
+  if (source.length >= 50 && source.length <= 175) {
+    return source;
+  }
+
+  if (source.length > 175) {
+    const trimmed = source.slice(0, 160).replace(/\s+\S*$/, '');
+    const candidate = `${trimmed}...`;
+    if (candidate.length >= 50 && candidate.length <= 180) {
+      return candidate;
+    }
+    return source.slice(0, 160);
+  }
+
+  const expanded = `${source} Learn more with Bardia Eco-Friendly Homestay.`;
+  if (expanded.length <= 180) {
+    return expanded;
+  }
+  return expanded.slice(0, 160);
+}
+
 function articleJsonLd(post) {
   const canonicalPath = `/blog/${post.slug}`;
   const canonicalUrl = post.canonical_url || `${siteUrl}${canonicalPath}`;
@@ -285,8 +337,8 @@ function articleJsonLd(post) {
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
-    headline: post.title,
-    description: post.meta_description || post.excerpt,
+    headline: seoTitleForPost(post),
+    description: seoDescriptionForPost(post),
     image: absoluteImageUrl(post.featured_image_url || post.meta_image, '/blogs/herosection.webp'),
     author: {
       '@type': 'Person',
@@ -300,14 +352,6 @@ function articleJsonLd(post) {
     mainEntityOfPage: canonicalUrl,
     articleSection: post.category_name,
   };
-}
-
-function seoTitleForPost(post) {
-  if (post.meta_title && post.meta_title.length <= 70) {
-    return post.meta_title;
-  }
-
-  return post.title;
 }
 
 async function fetchPublishedBlogPosts() {
@@ -347,7 +391,7 @@ for (const post of blogPosts) {
   routes.push({
     path: `/blog/${post.slug}`,
     title: seoTitleForPost(post),
-    description: post.meta_description || post.excerpt,
+    description: seoDescriptionForPost(post),
     image: post.meta_image || post.featured_image_url || '/blogs/herosection.webp',
     canonicalUrl: post.canonical_url || undefined,
     type: 'article',

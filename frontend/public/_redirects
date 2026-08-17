@@ -1,14 +1,17 @@
-/index.html    /    301
-/activities    /activities/index.html   200
-/activities/    /activities/index.html   200
-/gallery    /gallery/index.html   200
-/gallery/    /gallery/index.html   200
-/farm-to-table    /farm-to-table/index.html   200
-/farm-to-table/    /farm-to-table/index.html   200
-/packages    /packages/index.html   200
-/packages/    /packages/index.html   200
-/blog    /blog/index.html   200
-/blog/    /blog/index.html   200
-/contact    /contact/index.html   200
-/contact/    /contact/index.html   200
-/*    /404.html   404
+/index.html      /             301
+
+/activities/     /activities   301
+/gallery/        /gallery      301
+/farm-to-table/  /farm-to-table 301
+/packages/       /packages     301
+/blog/           /blog         301
+/contact/        /contact      301
+
+/activities      /activities/index.html   200
+/gallery         /gallery/index.html      200
+/farm-to-table   /farm-to-table/index.html 200
+/packages        /packages/index.html     200
+/blog            /blog/index.html         200
+/contact         /contact/index.html      200
+/*               /index.html              200
+

@@ -44,11 +44,47 @@ function normalizeDate(value: string | null | undefined) {
 }
 
 function getSeoTitle(post: BlogPostFull) {
-  if (post.meta_title && post.meta_title.length <= 70) {
-    return post.meta_title;
+  const metaTitle = post.meta_title?.trim();
+  if (metaTitle && metaTitle.length >= 10 && metaTitle.length <= 70) {
+    return metaTitle;
   }
 
-  return post.title;
+  const baseTitle = post.title?.trim() || 'Bardia Eco-Friendly Homestay Blog';
+  if (baseTitle.length <= 70) {
+    return baseTitle;
+  }
+  return `${baseTitle.slice(0, 67)}...`;
+}
+
+function getSeoDescription(post: BlogPostFull) {
+  const metaDesc = post.meta_description?.trim();
+  if (metaDesc && metaDesc.length >= 50 && metaDesc.length <= 180) {
+    return metaDesc;
+  }
+
+  const source = metaDesc || post.excerpt?.trim() || '';
+  if (!source) {
+    return 'Read stories, travel guides, and wildlife experiences from Bardia Eco-Friendly Homestay near Bardia National Park.';
+  }
+
+  if (source.length >= 50 && source.length <= 175) {
+    return source;
+  }
+
+  if (source.length > 175) {
+    const trimmed = source.slice(0, 160).replace(/\s+\S*$/, '');
+    const candidate = `${trimmed}...`;
+    if (candidate.length >= 50 && candidate.length <= 180) {
+      return candidate;
+    }
+    return source.slice(0, 160);
+  }
+
+  const expanded = `${source} Learn more with Bardia Eco-Friendly Homestay.`;
+  if (expanded.length <= 180) {
+    return expanded;
+  }
+  return expanded.slice(0, 160);
 }
 
 const DEFAULT_BLOG_HERO_IMAGE = '/hero-tiger.webp';
@@ -152,7 +188,7 @@ export function BlogPostPage() {
     <>
       <PageSeo
         title={getSeoTitle(post)}
-        description={post.meta_description || post.excerpt}
+        description={getSeoDescription(post)}
         path={`/blog/${post.slug}`}
         image={heroImage}
         canonicalUrl={post.canonical_url || undefined}
@@ -163,8 +199,8 @@ export function BlogPostPage() {
           {
             '@context': 'https://schema.org',
             '@type': 'BlogPosting',
-            headline: post.title,
-            description: post.meta_description || post.excerpt,
+            headline: getSeoTitle(post),
+            description: getSeoDescription(post),
             image: heroImage,
             author: {
               '@type': 'Person',
