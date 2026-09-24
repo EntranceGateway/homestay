@@ -393,7 +393,7 @@ for (const post of blogPosts) {
     title: seoTitleForPost(post),
     description: seoDescriptionForPost(post),
     image: post.meta_image || post.featured_image_url || '/blogs/herosection.webp',
-    canonicalUrl: post.canonical_url || undefined,
+    canonicalUrl: post.canonical_url ? post.canonical_url.replace('https://bardiaecofriendlyhomestay.com', siteUrl) : undefined,
     type: 'article',
     changefreq: 'monthly',
     priority: 0.6,
@@ -413,6 +413,44 @@ for (const post of blogPosts) {
       articleJsonLd(post),
     ],
   });
+}
+
+async function fetchCmsPageSeo() {
+  try {
+    const res = await fetch(`${apiBase}/pages/list`);
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json?.data || [];
+  } catch (error) {
+    console.warn(`Skipping CMS page SEO fetch: ${error instanceof Error ? error.message : String(error)}`);
+    return [];
+  }
+}
+
+const cmsPages = await fetchCmsPageSeo();
+for (const route of routes) {
+  const slug = route.path === '/' ? 'home' : route.path.replace(/^\//, '').replace(/\/+$/, '');
+  const cmsPage = cmsPages.find((p) => p.slug === slug && p.status === 'published');
+  if (cmsPage) {
+    if (cmsPage.meta_title) {
+      route.title = cmsPage.meta_title;
+    }
+    if (cmsPage.meta_description) {
+      route.description = cmsPage.meta_description;
+    }
+    if (cmsPage.canonical_url) {
+      let canon = cmsPage.canonical_url.replace('https://bardiaecofriendlyhomestay.com', siteUrl);
+      if (route.path !== '/' && canon.endsWith('/')) {
+        canon = canon.replace(/\/+$/, '');
+      } else if (route.path === '/' && !canon.endsWith('/')) {
+        canon = `${canon}/`;
+      }
+      route.canonicalUrl = canon;
+    }
+    if (cmsPage.robots?.startsWith('noindex')) {
+      route.noindex = true;
+    }
+  }
 }
 
 function escapeHtml(value) {
@@ -553,5 +591,19 @@ await writeFile(
 );
 
 await writeFile(path.join(distDir, 'sitemap.xml'), sitemapXml());
+
+// Sync robots.txt from live CMS API if available
+try {
+  const robotsUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) + '/robots.txt' : `${apiBase}/robots.txt`;
+  const robotsRes = await fetch(robotsUrl);
+  if (robotsRes.ok) {
+    const robotsTxt = await robotsRes.text();
+    if (robotsTxt.trim() && robotsTxt.includes('Sitemap:')) {
+      await writeFile(path.join(distDir, 'robots.txt'), robotsTxt);
+    }
+  }
+} catch {
+  // If CMS API is unreachable during build, fallback to copied public/robots.txt
+}
 
 await rm(path.join(distDir, 'server'), { recursive: true, force: true });
