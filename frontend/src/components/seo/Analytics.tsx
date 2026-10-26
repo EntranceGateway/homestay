@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { SITE_URL } from '@/constants';
 
 const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
-const SITE_URL = 'https://www.bardiaecofriendlyhomestay.com';
 let isInitialized = false;
 
 declare global {
@@ -26,7 +26,9 @@ function loadGoogleAnalytics() {
 
   window.dataLayer = window.dataLayer || [];
   window.gtag = window.gtag || function gtag() {
-    window.dataLayer?.push(Array.from(arguments));
+    // gtag.js only processes the real `arguments` object, not an array copy
+    // eslint-disable-next-line prefer-rest-params
+    window.dataLayer?.push(arguments);
   };
 
   if (!isInitialized) {

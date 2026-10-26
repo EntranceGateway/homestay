@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
+import { SITE_NAME, SITE_URL } from '@/constants';
 
-const SITE_URL = 'https://www.bardiaecofriendlyhomestay.com';
 const DEFAULT_IMAGE = `${SITE_URL}/logo.png`;
-const SITE_NAME = 'Bardia Eco-Friendly Homestay';
 
 type JsonLd = Record<string, unknown>;
 
@@ -108,5 +107,3 @@ export function PageSeo({
 
   return null;
 }
-
-export { SITE_NAME, SITE_URL };

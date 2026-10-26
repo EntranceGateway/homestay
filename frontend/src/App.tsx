@@ -1,15 +1,16 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
-import { HomePage } from '@/features/dashboard/pages/HomePage';
-import { GalleryPage } from '@/features/dashboard/pages/GalleryPage';
-import { ActivitiesPage } from '@/features/dashboard/pages/ActivitiesPage';
-import { BlogPage } from '@/features/dashboard/pages/BlogPage';
-import { BlogPostPage } from '@/features/dashboard/pages/BlogPostPage';
-import { FarmToTablePage } from '@/features/dashboard/pages/FarmToTablePage';
-import { PackagesPage } from '@/features/dashboard/pages/PackagesPage';
-import { ContactPage } from '@/features/dashboard/pages/ContactPage';
-import { NotFoundPage } from '@/features/dashboard/pages/NotFoundPage';
+import { HomePage } from '@/features/site/pages/HomePage';
+import { AboutPage } from '@/features/site/pages/AboutPage';
+import { GalleryPage } from '@/features/site/pages/GalleryPage';
+import { ActivitiesPage } from '@/features/site/pages/ActivitiesPage';
+import { BlogPage } from '@/features/site/pages/BlogPage';
+import { BlogPostPage } from '@/features/site/pages/BlogPostPage';
+import { FarmToTablePage } from '@/features/site/pages/FarmToTablePage';
+import { PackagesPage } from '@/features/site/pages/PackagesPage';
+import { ContactPage } from '@/features/site/pages/ContactPage';
+import { NotFoundPage } from '@/features/site/pages/NotFoundPage';
 import { ScrollToTop } from '@/components/common/ScrollToTop';
 import { ScrollToTopOnNavigate } from '@/components/common/ScrollToTopOnNavigate';
 import { ContactButtons } from '@/components/common/ContactButtons';
@@ -21,11 +22,12 @@ export function AppContent() {
     <>
       <Analytics />
       <ScrollToTopOnNavigate />
-      <div className="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200 font-body antialiased transition-colors duration-300">
+      <div className="bg-soft-earth text-gray-800 font-body antialiased transition-colors duration-300">
         <Navbar />
         <main>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/activities" element={<ActivitiesPage />} />
             <Route path="/gallery" element={<GalleryPage />} />
             <Route path="/farm-to-table" element={<FarmToTablePage />} />
@@ -36,19 +38,10 @@ export function AppContent() {
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>
-        <Routes>
-          <Route
-            path="*"
-            element={
-              <>
-                <Reviews />
-                <Footer />
-                <ScrollToTop />
-                <ContactButtons />
-              </>
-            }
-          />
-        </Routes>
+        <Reviews />
+        <Footer />
+        <ScrollToTop />
+        <ContactButtons />
       </div>
     </>
   );

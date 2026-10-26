@@ -2,13 +2,6 @@
 @config "../tailwind.config.js";
 
 @layer utilities {
-  /* Text outline effect for hero */
-  .text-outline {
-    -webkit-text-fill-color: transparent;
-    -webkit-text-stroke-width: 1px;
-    -webkit-text-stroke-color: rgba(255, 255, 255, 0.2);
-  }
-  
   /* Hide scrollbar */
   .scroll-hide::-webkit-scrollbar {
     display: none;
@@ -35,11 +28,6 @@
     z-index: 2;
   }
   
-  /* Smooth easing for nature-like animations */
-  .ease-nature {
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
   /* Card hover lift effect */
   .card-lift {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -49,30 +37,26 @@
     transform: translateY(-8px);
   }
   
-  /* Amber overlay on hover */
-  .amber-overlay {
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .amber-overlay::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-color: #C8843A;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-  
-  .amber-overlay:hover::after {
-    opacity: 0.15;
-  }
 }
 
 /* Base body styles */
 html {
   scroll-behavior: smooth;
+}
+
+/* Respect the OS "reduce motion" setting: no parallax, floating, auto-scroll or reveal animations */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 body {
@@ -94,32 +78,6 @@ body {
 .scroll-fade-in.visible {
   opacity: 1;
   transform: translateY(0);
-}
-
-/* Slide in from left */
-.scroll-slide-left {
-  opacity: 0;
-  transform: translateX(-60px);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.scroll-slide-left.visible {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-/* Slide in from right */
-.scroll-slide-right {
-  opacity: 0;
-  transform: translateX(60px);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.scroll-slide-right.visible {
-  opacity: 1;
-  transform: translateX(0);
 }
 
 /* Scale up from small */
@@ -216,35 +174,6 @@ body {
   box-shadow: 0 6px 20px rgba(200, 132, 58, 0.4);
 }
 
-/* ===== Glow CTA Button ===== */
-.btn-glow {
-  position: relative;
-  overflow: hidden;
-}
-
-.btn-glow::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  pointer-events: none;
-}
-
-.btn-glow:hover::after {
-  opacity: 1;
-  animation: glow-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes glow-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 1; }
-}
-
 /* ===== Organic Section Divider ===== */
 .divider-organic {
   position: relative;
@@ -286,21 +215,6 @@ body {
 
 .float-gentle-delay {
   animation: float-gentle 6s ease-in-out 2s infinite;
-}
-
-/* ===== Text Reveal Animation ===== */
-.text-reveal {
-  overflow: hidden;
-}
-
-.text-reveal > span {
-  display: inline-block;
-  transform: translateY(100%);
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.text-reveal.visible > span {
-  transform: translateY(0);
 }
 
 /* ===== Decorative Quote Marks ===== */
@@ -425,31 +339,6 @@ body {
   }
 }
 
-/* ===== Gallery — Carousel Auto-Scroll ===== */
-.carousel-track {
-  display: flex;
-  gap: 20px;
-  animation: carousel-autoScroll 70s linear infinite;
-  will-change: transform;
-}
-
-.carousel-track:hover {
-  animation-play-state: paused;
-}
-
-@keyframes carousel-autoScroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-.carousel-wrapper {
-  cursor: grab;
-}
-
-.carousel-wrapper:active {
-  cursor: grabbing;
-}
-
 /* ===== Elfsight Widget Responsive ===== */
 [class^="elfsight-app-"] {
   width: 100% !important;
@@ -471,17 +360,8 @@ body {
   flex-direction: column;
 }
 
-.dark .blog-card {
-  background: #3D2B1F; /* bark-soil */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
 .blog-card:hover {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-}
-
-.dark .blog-card:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 
 /* ===== Blog — Category Filter Tabs ===== */
@@ -499,11 +379,6 @@ body {
   color: #3D2B1F;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.dark .category-tab {
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #F2EAD3;
 }
 
 .category-tab:hover {
@@ -539,11 +414,6 @@ body {
   transition: all 0.3s ease;
 }
 
-.dark .pagination-btn {
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #F2EAD3;
-}
-
 .pagination-btn:hover:not(:disabled) {
   background: #C8843A;
   border-color: #C8843A;
@@ -563,10 +433,6 @@ body {
   color: #374151;
 }
 
-.dark .blog-content {
-  color: #d1d5db;
-}
-
 .blog-content h2 {
   font-family: 'Playfair Display', serif;
   font-size: 1.75rem;
@@ -577,10 +443,6 @@ body {
   line-height: 1.3;
 }
 
-.dark .blog-content h2 {
-  color: #f3f4f6;
-}
-
 .blog-content h3 {
   font-family: 'Playfair Display', serif;
   font-size: 1.375rem;
@@ -589,10 +451,6 @@ body {
   margin-bottom: 0.75rem;
   color: #1f2937;
   line-height: 1.4;
-}
-
-.dark .blog-content h3 {
-  color: #f3f4f6;
 }
 
 .blog-content h4 {
@@ -649,11 +507,6 @@ body {
   color: #4b5563;
 }
 
-.dark .blog-content blockquote {
-  background: rgba(200, 132, 58, 0.1);
-  color: #d1d5db;
-}
-
 .blog-content img {
   width: 100%;
   height: auto;
@@ -679,10 +532,6 @@ body {
   font-size: 0.875em;
 }
 
-.dark .blog-content code {
-  background: rgba(255, 255, 255, 0.1);
-}
-
 .blog-content pre code {
   background: none;
   padding: 0;
@@ -701,18 +550,9 @@ body {
   text-align: left;
 }
 
-.dark .blog-content th,
-.dark .blog-content td {
-  border-bottom-color: rgba(255, 255, 255, 0.1);
-}
-
 .blog-content th {
   font-weight: 600;
   color: #1C2B1A;
-}
-
-.dark .blog-content th {
-  color: #F2EAD3;
 }
 
 .blog-content hr {

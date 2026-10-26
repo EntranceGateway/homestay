@@ -234,6 +234,33 @@ const routes = [
     ],
   },
   {
+    path: '/about',
+    title: `About Us | ${siteName}`,
+    description:
+      'Meet the family, guides and kitchen behind Bardia Eco-Friendly Homestay, a small locally run homestay beside Bardia National Park.',
+    image: '/gallery/homestay.jpg',
+    changefreq: 'monthly',
+    priority: 0.7,
+    schemas: [
+      breadcrumbJsonLd([
+        { name: 'Home', path: '/' },
+        { name: 'About Us', path: '/about' },
+      ]),
+      {
+        '@context': 'https://schema.org',
+        '@type': 'AboutPage',
+        '@id': `${siteUrl}/about#webpage`,
+        url: `${siteUrl}/about`,
+        name: 'About Us',
+        description:
+          'Meet the family, guides and kitchen behind Bardia Eco-Friendly Homestay, a small locally run homestay beside Bardia National Park.',
+        isPartOf: { '@id': `${siteUrl}/#website` },
+        about: { '@id': `${siteUrl}/#lodging` },
+      },
+      lodgingBusinessJsonLd,
+    ],
+  },
+  {
     path: '/contact',
     title: `Contact | ${siteName}`,
     description:
@@ -384,6 +411,23 @@ async function fetchPublishedBlogPosts() {
     console.warn(`Skipping blog post prerendering: ${error instanceof Error ? error.message : String(error)}`);
     return [];
   }
+}
+
+// Embed CMS About content so the static HTML matches what hydration renders
+async function fetchAboutContent() {
+  try {
+    const res = await fetch(`${apiBase}/about/get`);
+    if (!res.ok) throw new Error(`About API returned ${res.status}`);
+    return (await res.json())?.data || null;
+  } catch (error) {
+    console.warn(`Using built-in About content: ${error instanceof Error ? error.message : String(error)}`);
+    return null;
+  }
+}
+
+const aboutContent = await fetchAboutContent();
+if (aboutContent) {
+  routes.find((route) => route.path === '/about').prerenderData = { about: aboutContent };
 }
 
 const blogPosts = await fetchPublishedBlogPosts();

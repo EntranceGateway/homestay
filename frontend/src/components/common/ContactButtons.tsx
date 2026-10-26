@@ -1,23 +1,29 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { whatsappUrl } from '@/constants';
+import { SocialIcon } from '@/components/common/SocialIcon';
 
 export function ContactButtons() {
+  const isContactPage = useLocation().pathname.replace(/\/+$/, '') === '/contact';
+
   return (
     <div className="fixed bottom-8 right-8 z-50 flex items-center gap-4">
-      <Link
-        className="bg-white text-secondary font-bold text-xs uppercase px-6 py-3 rounded-full shadow-lg hover:bg-gray-100 transition-colors"
-        to="/contact"
+      {!isContactPage && (
+        <Link
+          className="bg-white text-living-canopy font-bold text-xs uppercase px-6 py-3 rounded-full shadow-lg hover:bg-moonlight transition-colors"
+          to="/contact"
+        >
+          Contact Us!
+        </Link>
+      )}
+      <a
+        aria-label="Chat with us on WhatsApp"
+        className="bg-living-canopy p-3 rounded-full text-white shadow-lg hover:bg-deep-forest transition-colors"
+        href={whatsappUrl()}
+        target="_blank"
+        rel="noopener noreferrer"
       >
-        Contact Us!
-      </Link>
-      <button
-        aria-label="Open chat"
-        className="bg-[#5c7a45] p-3 rounded-full text-white shadow-lg hover:bg-[#4a6338] transition-colors"
-        type="button"
-      >
-        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-        </svg>
-      </button>
+        <SocialIcon name="whatsapp" className="w-7 h-7 fill-current" />
+      </a>
     </div>
   );
 }

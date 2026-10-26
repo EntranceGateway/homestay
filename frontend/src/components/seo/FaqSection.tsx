@@ -1,25 +1,7 @@
-interface FaqItem {
-  question: string;
-  answer: string;
-}
+import type { FaqItem } from '@/lib/seo';
 
 interface FaqSectionProps {
   items: FaqItem[];
-}
-
-export function faqJsonLd(items: FaqItem[]) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: items.map((item) => ({
-      '@type': 'Question',
-      name: item.question,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: item.answer,
-      },
-    })),
-  };
 }
 
 export function FaqSection({ items }: FaqSectionProps) {
@@ -31,11 +13,11 @@ export function FaqSection({ items }: FaqSectionProps) {
       </h2>
       <div className="space-y-4">
         {items.map((item) => (
-          <details key={item.question} className="border border-bark-soil/10 rounded-card bg-white/70 dark:bg-surface-dark/70 p-5">
+          <details key={item.question} className="border border-bark-soil/10 rounded-card bg-white/70 p-5">
             <summary className="cursor-pointer font-accent text-sm uppercase tracking-[0.12em] text-bark-soil">
               {item.question}
             </summary>
-            <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
+            <p className="mt-4 text-gray-600 leading-relaxed">
               {item.answer}
             </p>
           </details>

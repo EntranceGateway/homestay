@@ -2,11 +2,11 @@ import { useEffect } from 'react';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 export function Reviews() {
-  const heading = useScrollAnimation();
-  const widget = useScrollAnimation();
+  const [headingRef, headingVisible] = useScrollAnimation();
+  const [widgetRef, widgetVisible] = useScrollAnimation();
 
   useEffect(() => {
-    if (!widget.isVisible) {
+    if (!widgetVisible) {
       return;
     }
 
@@ -29,29 +29,29 @@ export function Reviews() {
         window.cancelIdleCallback?.(idleCallback);
       }
     };
-  }, [widget.isVisible]);
+  }, [widgetVisible]);
 
   return (
-    <section className="py-24 bg-background-light dark:bg-surface-dark relative overflow-hidden">
+    <section className="py-24 bg-soft-earth relative overflow-hidden">
       <div className="container mx-auto px-4">
         {/* Section heading — matches IntroSection / other sections */}
         <div
-          ref={heading.ref}
-          className={`text-center mb-12 scroll-fade-in ${heading.isVisible ? 'visible' : ''}`}
+          ref={headingRef}
+          className={`text-center mb-12 scroll-fade-in ${headingVisible ? 'visible' : ''}`}
         >
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-3xl md:text-5xl font-display font-bold text-gray-900 mb-4">
             What Our Guests Say
           </h2>
           <div className="divider-organic" />
-          <p className="text-gray-600 dark:text-gray-400 text-lg mt-6 max-w-2xl mx-auto">
+          <p className="text-gray-600 text-lg mt-6 max-w-2xl mx-auto">
             Real reviews from travelers who experienced Bardia with us
           </p>
         </div>
 
         {/* Elfsight widget — responsive wrapper */}
         <div
-          ref={widget.ref}
-          className={`max-w-5xl mx-auto scroll-fade-in stagger-2 ${widget.isVisible ? 'visible' : ''}`}
+          ref={widgetRef}
+          className={`max-w-5xl mx-auto scroll-fade-in stagger-2 ${widgetVisible ? 'visible' : ''}`}
         >
           <div className="w-full overflow-x-auto">
             <div

@@ -1,0 +1,321 @@
+import { Link, useParams } from 'react-router-dom';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+import { PageSeo } from '@/components/seo/PageSeo';
+import { SITE_URL } from '@/constants';
+import { breadcrumbJsonLd } from '@/lib/seo';
+import { useApi } from '@/hooks/useApi';
+import { useParallax } from '@/hooks/useParallax';
+import { getApiBaseUrl } from '@/lib/apiBase';
+import { getPrerenderData } from '@/lib/prerender';
+import type { BlogPostFull } from '@/types/blog';
+
+function getPrerenderedPost(slug: string | undefined) {
+  return slug ? getPrerenderData().blogPostsBySlug?.[slug] || null : null;
+}
+
+function normalizeDate(value: string | null | undefined) {
+  if (!value || value.startsWith('0000-00-00')) {
+    return undefined;
+  }
+
+  const date = new Date(value.replace(' ', 'T'));
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  return date.toISOString();
+}
+
+function getSeoTitle(post: BlogPostFull) {
+  const metaTitle = post.meta_title?.trim();
+  if (metaTitle && metaTitle.length >= 10 && metaTitle.length <= 70) {
+    return metaTitle;
+  }
+
+  const baseTitle = post.title?.trim() || 'Bardia Eco-Friendly Homestay Blog';
+  if (baseTitle.length <= 70) {
+    return baseTitle;
+  }
+  return `${baseTitle.slice(0, 67)}...`;
+}
+
+function getSeoDescription(post: BlogPostFull) {
+  const metaDesc = post.meta_description?.trim();
+  if (metaDesc && metaDesc.length >= 50 && metaDesc.length <= 180) {
+    return metaDesc;
+  }
+
+  const source = metaDesc || post.excerpt?.trim() || '';
+  if (!source) {
+    return 'Read stories, travel guides, and wildlife experiences from Bardia Eco-Friendly Homestay near Bardia National Park.';
+  }
+
+  if (source.length >= 50 && source.length <= 175) {
+    return source;
+  }
+
+  if (source.length > 175) {
+    const trimmed = source.slice(0, 160).replace(/\s+\S*$/, '');
+    const candidate = `${trimmed}...`;
+    if (candidate.length >= 50 && candidate.length <= 180) {
+      return candidate;
+    }
+    return source.slice(0, 160);
+  }
+
+  const expanded = `${source} Learn more with Bardia Eco-Friendly Homestay.`;
+  if (expanded.length <= 180) {
+    return expanded;
+  }
+  return expanded.slice(0, 160);
+}
+
+const DEFAULT_BLOG_HERO_IMAGE = '/hero-tiger.webp';
+
+export function BlogPostPage() {
+  const { slug } = useParams<{ slug: string }>();
+  const prerenderedPost = getPrerenderedPost(slug);
+  const { data: fetchedPost, loading, error } = useApi<BlogPostFull>({
+    url: prerenderedPost || !slug ? null : `${getApiBaseUrl()}/blog-posts/get?slug=${encodeURIComponent(slug)}`,
+  });
+  const post = prerenderedPost ?? fetchedPost;
+
+  const [contentRef, contentVisible] = useScrollAnimation();
+  const [relatedRef, relatedVisible] = useScrollAnimation({ threshold: 0.1 });
+  const heroImageRef = useParallax<HTMLDivElement>(0.25);
+  const heroTextRef = useParallax<HTMLDivElement>(0, 600);
+  const publishedAt = normalizeDate(post?.published_at);
+  const modifiedAt = normalizeDate(post?.updated_at) || publishedAt;
+
+  // Breadcrumbs
+  const pageBreadcrumbs = [
+    { label: 'Home', href: '/' },
+    { label: 'Blog', href: '/blog' },
+    ...(post ? [{ label: post.title, href: `/blog/${post.slug}`}] : []),
+  ];
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="bg-soft-earth min-h-screen">
+        <div className="h-[50vh] bg-gray-300 animate-pulse" />
+        <div className="container mx-auto px-4 max-w-3xl py-12">
+          <div className="h-8 bg-gray-300 rounded w-3/4 mb-4 animate-pulse" />
+          <div className="h-4 bg-gray-300 rounded w-1/2 mb-8 animate-pulse" />
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-4 bg-gray-300 rounded animate-pulse" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error / not found state
+  if (error || !post) {
+    return (
+      <>
+        <PageSeo
+          title="Blog Post Not Found"
+          description="The requested Bardia Eco-Friendly Homestay blog post could not be found."
+          path={slug ? `/blog/${slug}`: '/blog'}
+          noindex
+        />
+        <div className="bg-soft-earth min-h-screen flex items-center justify-center">
+          <div className="text-center px-4">
+            <span className="text-7xl mb-6 block">🔍</span>
+            <h1 className="font-display text-3xl text-gray-800 mb-4">
+              Post Not Found
+            </h1>
+            <p className="text-gray-600 mb-8">
+              {error ? "We couldn't load this post. Check your connection and try again." : "The blog post you're looking for doesn't exist."}
+            </p>
+            <Link to="/blog" className="btn-brush btn-brush-gold">
+              Back to Blog
+            </Link>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  const heroImage = post.featured_image_url || DEFAULT_BLOG_HERO_IMAGE;
+  const heroImageAlt = post.featured_image_alt || post.title;
+
+  return (
+    <>
+      <PageSeo
+        title={getSeoTitle(post)}
+        description={getSeoDescription(post)}
+        path={`/blog/${post.slug}`}
+        image={heroImage}
+        canonicalUrl={post.canonical_url || undefined}
+        noindex={post.robots?.startsWith('noindex')}
+        type="article"
+        jsonLd={[
+          breadcrumbJsonLd(pageBreadcrumbs),
+          {
+            '@context': 'https://schema.org',
+            '@type': 'BlogPosting',
+            headline: getSeoTitle(post),
+            description: getSeoDescription(post),
+            image: heroImage,
+            author: {
+              '@type': 'Person',
+              name: post.author_name || 'Bardiya Eco Team',
+            },
+            publisher: {
+              '@type': 'Organization',
+              name: 'Bardia Eco-Friendly Homestay',
+              logo: {
+                '@type': 'ImageObject',
+                url: `${SITE_URL}/logo.png`,
+              },
+            },
+            ...(publishedAt ? { datePublished: publishedAt } : {}),
+            ...(modifiedAt ? { dateModified: modifiedAt } : {}),
+            mainEntityOfPage: post.canonical_url || `${SITE_URL}/blog/${post.slug}`,
+            articleSection: post.category_name,
+          },
+        ]}
+      />
+
+      {/* ───── Hero / Featured Image ───── */}
+      <header className="relative min-h-screen flex items-center justify-center overflow-hidden bg-deep-forest">
+        <div
+          ref={heroImageRef}
+          className="absolute inset-0 z-0 will-change-transform"
+        >
+          {post.featured_image_url ? (
+            <img
+              src={heroImage}
+              alt={heroImageAlt}
+              className="w-full h-full object-cover object-[30%_center] scale-110 md:object-center"
+            />
+          ) : (
+            <picture className="block w-full h-full">
+              <source srcSet={DEFAULT_BLOG_HERO_IMAGE} type="image/webp" />
+              <img
+                src="/tiger.jpg"
+                alt={heroImageAlt}
+                className="w-full h-full object-cover object-[30%_center] scale-110 md:object-center"
+                width={1920}
+                height={1200}
+              />
+            </picture>
+          )}
+          <div className="absolute inset-0 bg-black/45" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-deep-forest/70" />
+        </div>
+
+        <div
+          ref={heroTextRef}
+          className="relative z-10 container mx-auto px-4 sm:px-6 max-w-4xl text-center mt-16 will-change-transform"
+        >
+          <div className="mb-6 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+            <Link
+              to="/blog"
+              className="inline-flex items-center justify-center gap-2 text-white/80 hover:text-golden-hour text-sm font-accent uppercase tracking-wider transition-colors drop-shadow-lg"
+            >
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+              </svg>
+              <span>Back to Blog</span>
+            </Link>
+
+            <span className="inline-flex max-w-full items-center justify-center rounded-full bg-living-canopy/90 px-3 py-1.5 text-center font-accent text-xs uppercase tracking-wider text-white backdrop-blur-sm">
+              {post.category_name}
+            </span>
+          </div>
+
+          <h1 className="text-white font-display text-4xl md:text-6xl lg:text-7xl font-light leading-tight mb-8 drop-shadow-2xl">
+            {post.title}
+          </h1>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 text-white/75 text-sm drop-shadow-lg">
+            <span className="font-accent uppercase tracking-wider">
+              By {post.author_name || 'Bardiya Eco Team'}
+            </span>
+            <span className="w-1 h-1 bg-white/40 rounded-full" />
+            <time dateTime={publishedAt || ''}>
+              {publishedAt
+                ? new Date(publishedAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })
+                : ''}
+            </time>
+          </div>
+        </div>
+      </header>
+
+      {/* ───── Article Content ───── */}
+      <section className="bg-soft-earth">
+        <div className="container mx-auto px-4 sm:px-6 max-w-3xl py-12 md:py-20">
+          <div
+            ref={contentRef}
+            className={`scroll-fade-in ${contentVisible ? 'visible' : ''}`}
+          >
+            <article
+              className="blog-content"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ───── Related Posts ───── */}
+      {post.related_posts && post.related_posts.length > 0 && (
+        <section className="bg-moonlight py-16 md:py-24">
+          <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
+            <div
+              ref={relatedRef}
+              className={`scroll-fade-in ${relatedVisible ? 'visible' : ''}`}
+            >
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-gray-900 text-center mb-3">
+                Related Posts
+              </h2>
+              <div className="divider-organic mb-12" />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+                {post.related_posts.map((relatedPost, index) => (
+                  <Link
+                    key={relatedPost.id}
+                    to={`/blog/${relatedPost.slug}`}
+                    className={`blog-card card-lift hover-shine scroll-fade-in stagger-${index + 1} ${relatedVisible ? 'visible' : ''}`}
+                  >
+                    {relatedPost.featured_image_url ? (
+                      <img
+                        src={relatedPost.featured_image_url}
+                        alt={relatedPost.title}
+                        className="w-full h-44 object-cover rounded-t-card"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-44 bg-gradient-to-br from-living-canopy/20 to-golden-hour/20 flex items-center justify-center rounded-t-card">
+                        <span className="text-4xl">📝</span>
+                      </div>
+                    )}
+                    <div className="p-5">
+                      <span className="text-xs font-accent uppercase tracking-wider text-living-canopy mb-2 block">
+                        {relatedPost.category_name}
+                      </span>
+                      <h3 className="font-display text-base font-bold text-gray-900 mb-2 leading-snug line-clamp-2">
+                        {relatedPost.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 line-clamp-2">
+                        {relatedPost.excerpt}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+    </>
+  );
+}

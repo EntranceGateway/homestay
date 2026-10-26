@@ -42,5 +42,5 @@ export function useScrollAnimation(options: ScrollAnimationOptions = {}) {
         return () => observer.disconnect();
     }, [element, threshold, rootMargin, triggerOnce]);
 
-    return { ref, isVisible };
+    return [ref, isVisible] as const;
 }

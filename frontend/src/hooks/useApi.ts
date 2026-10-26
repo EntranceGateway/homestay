@@ -1,13 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-// Global cache to persist data across component unmounts and route changes
-const globalCache = new Map<string, any>();
-const globalPromises = new Map<string, Promise<any>>();
+interface CacheEntry {
+  data: unknown;
+  timestamp: number;
+}
 
-interface UseApiOptions<T> {
-  url: string;
-  initialData?: T;
-  // How long to consider data fresh before re-fetching (default: 5 minutes)
+// Shared across components and route changes; also dedupes in-flight requests
+const cache = new Map<string, CacheEntry>();
+const inFlight = new Map<string, Promise<unknown>>();
+
+interface UseApiOptions {
+  // null skips the request (e.g. data already available)
+  url: string | null;
+  // How long cached data counts as fresh before re-fetching (default: 5 minutes)
   staleTime?: number;
 }
 
@@ -18,94 +23,71 @@ interface UseApiResult<T> {
   refetch: () => Promise<void>;
 }
 
-export function useApi<T>({ url, initialData = null as any, staleTime = 300000 }: UseApiOptions<T>): UseApiResult<T> {
-  const [data, setData] = useState<T | null>(() => {
-    // Return cached data immediately if available (avoids initial loading state)
-    if (globalCache.has(url)) {
-      return globalCache.get(url)?.data;
-    }
-    return initialData;
-  });
-  
-  // Only true if we have no data at all
-  const [loading, setLoading] = useState<boolean>(!globalCache.has(url));
-  const [error, setError] = useState<Error | null>(null);
-  
-  const mountedRef = useRef(true);
+function request(url: string) {
+  let promise = inFlight.get(url);
+  if (!promise) {
+    promise = fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
+      .then((json) => {
+        if (json?.status && json.status !== 'success') throw new Error(json.message || 'Request failed.');
+        // Unwrap the standard { status, data } API envelope
+        return json?.data !== undefined ? json.data : json;
+      })
+      .finally(() => inFlight.delete(url));
+    inFlight.set(url, promise);
+  }
+  return promise;
+}
+
+interface Result {
+  url: string;
+  data: unknown;
+  error: Error | null;
+}
+
+async function load(url: string): Promise<Result> {
+  try {
+    const data = await request(url);
+    cache.set(url, { data, timestamp: Date.now() });
+    return { url, data, error: null };
+  } catch (err) {
+    console.error(`API Error (${url}):`, err);
+    // Keep showing stale cached data if we have it
+    return { url, data: cache.get(url)?.data ?? null, error: err instanceof Error ? err : new Error(String(err)) };
+  }
+}
+
+export function useApi<T>({ url, staleTime = 300000 }: UseApiOptions): UseApiResult<T> {
+  // Result of the last finished request; ignored once `url` changes
+  const [result, setResult] = useState<Result>({ url: '', data: null, error: null });
 
   useEffect(() => {
-    mountedRef.current = true;
+    if (!url) return;
+    const entry = cache.get(url);
+    if (entry && Date.now() - entry.timestamp < staleTime) return;
+
+    let active = true;
+    load(url).then((next) => {
+      if (active) setResult(next);
+    });
     return () => {
-      mountedRef.current = false;
+      active = false;
     };
-  }, []);
+  }, [url, staleTime]);
 
-  const fetchData = async (force = false) => {
-    // If not forcing, and we have fresh data in cache, skip fetch
-    if (!force && globalCache.has(url)) {
-      const cached = globalCache.get(url)!;
-      if (Date.now() - cached.timestamp < staleTime) {
-        if (mountedRef.current) {
-          setLoading(false);
-          // Only update state if data actually changed (rare for this path)
-          if (JSON.stringify(data) !== JSON.stringify(cached.data)) {
-            setData(cached.data);
-          }
-        }
-        return;
-      }
-    }
-
-    try {
-      // Background revalidation or initial fetch
-      if (!globalCache.has(url) && mountedRef.current) {
-        setLoading(true);
-      }
-      
-      let promise = globalPromises.get(url);
-      
-      // Request deduplication
-      if (!promise) {
-        promise = fetch(url).then(res => {
-          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-          return res.json();
-        });
-        globalPromises.set(url, promise);
-      }
-
-      const json = await promise;
-      
-      // Parse out 'data' property if it's a standard API response wrapper
-      const resultData = json.data !== undefined ? json.data : json;
-      
-      globalCache.set(url, {
-        data: resultData,
-        timestamp: Date.now()
-      });
-
-      if (mountedRef.current) {
-        setData(resultData);
-        setError(null);
-      }
-    } catch (err) {
-      if (mountedRef.current) {
-        console.error(`API Error (${url}):`, err);
-        setError(err instanceof Error ? err : new Error(String(err)));
-        // If we have stale cache, we keep showing it rather than showing an error
-      }
-    } finally {
-      globalPromises.delete(url);
-      if (mountedRef.current) {
-        setLoading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (url) {
-      fetchData();
-    }
+  const refetch = useCallback(async () => {
+    if (url) setResult(await load(url));
   }, [url]);
 
-  return { data, loading, error, refetch: () => fetchData(true) };
+  const settled = result.url === url;
+  const cached = url ? cache.get(url) : undefined;
+  return {
+    data: ((settled ? result.data : cached?.data) as T) ?? null,
+    loading: !!url && !settled && !cached,
+    error: settled ? result.error : null,
+    refetch,
+  };
 }

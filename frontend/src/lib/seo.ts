@@ -1,4 +1,4 @@
-import { SITE_URL } from '@/components/seo/PageSeo';
+import { SITE_URL } from '@/constants';
 
 export function breadcrumbJsonLd(items: Array<{ label: string; href: string }>) {
   return {
@@ -45,3 +45,37 @@ export const websiteJsonLd = {
     '@id': `${SITE_URL}/#lodging`,
   },
 };
+
+// About page entity, linked to the business described by lodgingBusinessJsonLd
+export function aboutPageJsonLd(description: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    '@id': `${SITE_URL}/about#webpage`,
+    url: `${SITE_URL}/about`,
+    name: 'About Us',
+    description,
+    isPartOf: { '@id': `${SITE_URL}/#website` },
+    about: { '@id': `${SITE_URL}/#lodging` },
+  };
+}
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export function faqJsonLd(items: FaqItem[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  };
+}

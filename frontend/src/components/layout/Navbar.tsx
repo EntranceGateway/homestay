@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
+import { useDialog } from '@/hooks/useDialog';
 
 const LEFT_LINKS = [
   { label: 'Home', href: '/' },
+  { label: 'About', href: '/about' },
   { label: 'Activities', href: '/activities' },
   { label: 'Gallery', href: '/gallery' },
-  { label: 'Farm to Table', href: '/farm-to-table' },
 ];
 
 const RIGHT_LINKS = [
+  { label: 'Farm to Table', href: '/farm-to-table' },
   { label: 'Packages', href: '/packages' },
   { label: 'Blog', href: '/blog' },
   { label: 'Contact', href: '/contact' },
@@ -29,16 +31,20 @@ export function Navbar() {
   const handleNavClick = () => {
     setIsOpen(false);
   };
+  // Wraps bar + menu so the toggle button stays reachable while focus is trapped
+  const menuRef = useDialog<HTMLDivElement>(isOpen, handleNavClick);
 
-  const linkClass =
-    'font-accent text-[11px] tracking-[0.16em] uppercase text-white/90 drop-shadow-md hover:text-accent-gold transition-colors duration-300 whitespace-nowrap';
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    `font-accent text-xs tracking-[0.16em] uppercase drop-shadow-md hover:text-golden-hour transition-colors duration-300 whitespace-nowrap border-b pb-1 ${
+      isActive ? 'text-golden-hour border-golden-hour' : 'text-white/90 border-transparent'
+    }`;
 
   return (
-    <>
+    <div ref={menuRef}>
       <nav
         className={`fixed w-full z-[70] transition-all duration-500 ${
           isScrolled
-            ? 'bg-background-dark/95 backdrop-blur-md shadow-lg border-b border-white/10 py-3'
+            ? 'bg-deep-forest/95 backdrop-blur-md shadow-lg border-b border-white/10 py-3'
             : 'bg-gradient-to-b from-black/50 to-transparent py-5'
         }`}
       >
@@ -48,14 +54,15 @@ export function Navbar() {
             {/* Left links */}
             <div className="flex items-center justify-end gap-5 xl:gap-8">
               {LEFT_LINKS.map((link) => (
-                <Link
+                <NavLink
                   key={link.href}
                   to={link.href}
+                  end={link.href === '/'}
                   className={linkClass}
                   onClick={handleNavClick}
                 >
                   {link.label}
-                </Link>
+                </NavLink>
               ))}
             </div>
 
@@ -76,14 +83,15 @@ export function Navbar() {
             {/* Right links */}
             <div className="flex items-center justify-start gap-5 xl:gap-8">
               {RIGHT_LINKS.map((link) => (
-                <Link
+                <NavLink
                   key={link.href}
                   to={link.href}
+                  end={link.href === '/'}
                   className={linkClass}
                   onClick={handleNavClick}
                 >
                   {link.label}
-                </Link>
+                </NavLink>
               ))}
             </div>
           </div>
@@ -98,16 +106,16 @@ export function Navbar() {
                 height={322}
                 className="h-9 w-auto flex-shrink-0 sm:h-10"
               />
-              <span className="font-display text-[11px] text-white tracking-[0.1em] uppercase leading-tight drop-shadow-md sm:text-xs sm:tracking-[0.12em]">
+              <span className="font-display text-xs text-white tracking-[0.1em] uppercase leading-tight drop-shadow-md sm:text-xs sm:tracking-[0.12em]">
                 Bardia Eco-Friendly<br />Homestay
               </span>
             </Link>
 
             <button
-              className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded bg-background-dark/70 text-white shadow-lg ring-1 ring-white/15 backdrop-blur-sm transition-colors hover:text-accent-gold"
+              className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded bg-deep-forest/70 text-white shadow-lg ring-1 ring-white/15 backdrop-blur-sm transition-colors hover:text-golden-hour"
               onClick={() => setIsOpen(!isOpen)}
               type="button"
-              aria-label="Toggle menu"
+              aria-label={isOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={isOpen}
               aria-controls="mobile-menu"
             >
@@ -127,22 +135,27 @@ export function Navbar() {
       {isOpen && (
         <div
           id="mobile-menu"
-          className="fixed inset-0 z-[65] overflow-y-auto bg-[#1C2B1A] px-4 pb-6 pt-24 shadow-2xl lg:hidden"
+          className="fixed inset-0 z-[65] overflow-y-auto bg-deep-forest px-4 pb-6 pt-24 shadow-2xl lg:hidden"
         >
           <div className="mx-auto max-w-[1400px] space-y-1">
             {ALL_LINKS.map((link) => (
-              <Link
+              <NavLink
                 key={link.href}
                 to={link.href}
-                className="block border-b border-white/10 px-3 py-3.5 font-accent text-[12px] tracking-[0.14em] uppercase text-white/90 last:border-b-0 hover:text-accent-gold transition-colors"
+                end={link.href === '/'}
+                className={({ isActive }) =>
+                  `block border-b border-white/10 px-3 py-3.5 font-accent text-sm tracking-[0.14em] uppercase last:border-b-0 hover:text-golden-hour transition-colors ${
+                    isActive ? 'text-golden-hour' : 'text-white/90'
+                  }`
+                }
                 onClick={handleNavClick}
               >
                 {link.label}
-              </Link>
+              </NavLink>
             ))}
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
