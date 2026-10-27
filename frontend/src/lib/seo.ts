@@ -1,4 +1,5 @@
 import { SITE_URL } from '@/constants';
+import type { AboutBlock } from '@/types/about';
 
 export function breadcrumbJsonLd(items: Array<{ label: string; href: string }>) {
   return {
@@ -57,6 +58,23 @@ export function aboutPageJsonLd(description: string) {
     description,
     isPartOf: { '@id': `${SITE_URL}/#website` },
     about: { '@id': `${SITE_URL}/#lodging` },
+  };
+}
+
+// Owner of the homestay, linked to the business as its founder
+export function ownerJsonLd(owner: AboutBlock) {
+  const image = owner.image_url && (owner.image_url.startsWith('http') ? owner.image_url : `${SITE_URL}${owner.image_url}`);
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    '@id': `${SITE_URL}/about#owner`,
+    name: owner.title,
+    jobTitle: owner.subtitle?.split('|')[0].trim() || undefined,
+    description: owner.subtitle || undefined,
+    image: image || undefined,
+    email: owner.email ? `mailto:${owner.email}` : undefined,
+    telephone: owner.phone || undefined,
+    worksFor: { '@id': `${SITE_URL}/#lodging` },
   };
 }
 

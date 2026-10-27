@@ -426,8 +426,33 @@ async function fetchAboutContent() {
 }
 
 const aboutContent = await fetchAboutContent();
+const aboutRoute = routes.find((route) => route.path === '/about');
 if (aboutContent) {
-  routes.find((route) => route.path === '/about').prerenderData = { about: aboutContent };
+  aboutRoute.prerenderData = { about: aboutContent };
+}
+
+// Owner as a Person linked to the business; CMS owner when available, else the built-in profile
+const owner = aboutContent?.owner ?? {
+  title: 'Shardul Bhattarai',
+  subtitle: 'Wildlife Guide | Safari Specialist | Wildlife Photographer | Human-Wildlife Coexistence Advocate',
+  image_url: '/gallery/shardul-bhattarai.webp',
+  phone: '+977 9842364787',
+  email: 'shardul.bhattarai@gmail.com',
+};
+if (owner) {
+  const image = owner.image_url && (owner.image_url.startsWith('http') ? owner.image_url : `${siteUrl}${owner.image_url}`);
+  aboutRoute.schemas.push({
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    '@id': `${siteUrl}/about#owner`,
+    name: owner.title,
+    jobTitle: owner.subtitle?.split('|')[0].trim() || undefined,
+    description: owner.subtitle || undefined,
+    image: image || undefined,
+    email: owner.email ? `mailto:${owner.email}` : undefined,
+    telephone: owner.phone || undefined,
+    worksFor: { '@id': `${siteUrl}/#lodging` },
+  });
 }
 
 const blogPosts = await fetchPublishedBlogPosts();
